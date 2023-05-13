@@ -1,0 +1,117 @@
+openapi: 3.0.0
+info:
+  title: Simple Logging Service
+  version: 1.0.0
+
+servers:
+- url: http://localhost:5000
+  description: Local development
+
+paths:
+  /log:
+    post:
+      tags:
+        - Function
+      summary: Log a message
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LogMessage'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: The confirmation of the successful operation.
+    head:
+      tags:
+        - Status
+      summary: Health check for the logging service
+      description: Use this endpoint to check if the logging service is up and running. It does not require a body or produce a response body. A status code of 200 indicates that the service is healthy.
+      responses:
+        '200':
+          description: The service is up and running
+        '500':
+          description: The service is down
+components:
+  schemas:
+    LogMessage:
+      type: object
+      required:
+        - id
+        - time
+        - event
+        - topic
+      properties:
+        id:
+          type: string
+          description: Randomly chosen message identifier
+        time:
+          type: integer
+          format: int64
+          description: Message date time, as Unix time stamp
+        expires:
+          type: integer
+          format: int64
+          description: Unix time stamp indicating when the message will be deleted
+        event:
+          type: string
+          description: Message type
+        topic:
+          type: string
+          description: Comma-separated list of topics the message is associated with
+        message:
+          type: string
+          description: Message body
+        title:
+          type: string
+          description: Message title
+        tags:
+          type: array
+          items:
+            type: string
+          description: List of tags that may or not map to emojis
+        priority:
+          type: integer
+          description: Message priority with 1=min, 3=default and 5=max
+        click:
+          type: string
+          description: Website opened when notification is clicked
+        actions:
+          type: array
+          items:
+            type: object
+          description: Action buttons that can be displayed in the notification
+        attachment:
+          type: object
+          properties:
+            name:
+              type: string
+              description: The name of the attachment
+            type:
+              type: string
+              description: The type of the attachment
+            size:
+              type: integer
+              format: int64
+              description: The size of the attachment
+            expires:
+              type: integer
+              format: int64
+              description: Unix time stamp indicating when the attachment will be deleted
+            url:
+              type: string
+              description: URL of the attachment
+
+tags:
+  - name: Function
+    description: Endpoints related to the main functionality of the service.
+  - name: Status
+    description: Endpoints for checking the status and health of the service.
