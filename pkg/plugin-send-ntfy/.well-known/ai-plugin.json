@@ -1,0 +1,19 @@
+{
+    "schema_version": "v1",
+    "name_for_human": "NTFY Plugin",
+    "name_for_model": "send_ntfy",
+    "description_for_human": "Plugin for sending notifications via NTFY. You can send notifications directly from the chat.",
+    "description_for_model": "This plugin allows you to send notifications via NTFY. Just tell me to 'send nfty' followed by your message, and I'll send a notification for you.",
+    "auth": {
+      "type": "none"
+    },
+    "api": {
+      "type": "openapi",
+      "url": "http://localhost:5003/openapi.yaml",
+      "is_user_authenticated": false
+    },
+    "logo_url": "http://localhost:5003/logo.png",
+    "contact_email": "cutmastakun@gmail.com",
+    "legal_info_url": "https://example.com/legal"
+  }
+  

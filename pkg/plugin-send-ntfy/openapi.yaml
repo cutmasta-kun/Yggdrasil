@@ -1,0 +1,45 @@
+openapi: 3.0.1
+info:
+  title: NTFY Plugin
+  description: A plugin that allows the user to send notifications via NTFY using ChatGPT.
+  version: 'v1'
+servers:
+  - url: http://localhost:5003
+paths:
+  /send:
+    post:
+      operationId: send_ntfy
+      summary: Send a notification
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/sendNotificationRequest'
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequestResponse'
+
+components:
+  schemas:
+    sendNotificationRequest:
+      type: object
+      required:
+      - message
+      properties:
+        message:
+          type: string
+          description: The message to send as a notification.
+          required: true
+    BadRequestResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          description: A description of the error.
