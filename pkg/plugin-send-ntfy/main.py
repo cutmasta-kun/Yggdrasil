@@ -1,3 +1,4 @@
+# main.py
 from flask import Flask, send_file, request, Response, jsonify, abort
 from flask_cors import CORS
 import os
@@ -18,7 +19,7 @@ def plugin_logo():
 @app.route("/.well-known/ai-plugin.json", methods=['GET'])
 def plugin_manifest():
     host = request.headers['Host']
-    with open("./.well-known/ai-plugin.json") as f:
+    with open("./ai-plugin.json") as f:
         text = f.read()
         return Response(text, mimetype="application/json")
 

@@ -1,0 +1,11 @@
+# docker-compose.yaml
+version: '3.9'
+
+services:
+  communication-app:
+    environment:
+#      DEBUG: true
+#      LISTEN_TOPIC_<UUID>: '<protocol><service_name>/<endpoint>'
+    volumes:
+      - ./../pkg/communication:/app
+#    restart: unless-stopped

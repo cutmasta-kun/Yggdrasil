@@ -36,7 +36,6 @@ components:
         message:
           type: string
           description: The message to send as a notification.
-          required: true
     BadRequestResponse:
       type: object
       properties:

@@ -1,0 +1,18 @@
+{
+  "schema_version": "v1",
+  "name_for_human": "Arxiv Search Plugin",
+  "name_for_model": "search_arxiv",
+  "description_for_human": "Plugin for searching papers on Arxiv. You can search for papers directly from the chat.",
+  "description_for_model": "This plugin allows you to search for papers on Arxiv. Just tell me to 'search arxiv' followed by your query, and I'll return a list of paper IDs for you.",
+  "auth": {
+    "type": "none"
+  },
+  "api": {
+    "type": "openapi",
+    "url": "http://localhost:5004/openapi.yaml",
+    "is_user_authenticated": false
+  },
+  "logo_url": "http://localhost:5004/logo.png",
+  "contact_email": "cutmastakun@gmail.com",
+  "legal_info_url": "https://example.com/legal"
+}
