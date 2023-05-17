@@ -1,0 +1,91 @@
+openapi: 3.0.1
+info:
+  title: Datasette Plugin API
+  version: 'v1'
+servers:
+  - url: http://localhost:5005
+paths:
+  /{database}.json:
+    get:
+      operationId: listTables
+      tags:
+        - Knowledge
+      parameters:
+      - name: database
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: OK
+  /{database}/{table}.json:
+    get:
+      operationId: listRows
+      tags:
+        - Knowledge
+      parameters:
+      - name: database
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: table
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: OK
+  /{database}/{table}/{id}.json:
+    get:
+      operationId: getRow
+      tags:
+        - Knowledge
+      parameters:
+      - name: database
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: table
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: OK
+  /gpt/add_message.json:
+    post:
+      operationId: addMessage
+      tags:
+        - GPT messages
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+      responses:
+        '200':
+          description: OK
+  /gpt/get_messages.json:
+    get:
+      operationId: getMessages
+      tags:
+        - GPT messages
+      summary: Retrieve all messages
+      description: This endpoint retrieves all messages stored in the 'messages' table of the 'gpt' database. The messages are returned in descending order by their creation time.
+      responses:
+        '200':
+          description: OK

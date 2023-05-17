@@ -1,0 +1,21 @@
+{
+    "title": "My Datasette Instance",
+    "databases": {
+        "gpt": {
+            "queries": {
+                "get_messages": {
+                    "sql": "SELECT * FROM messages ORDER BY created_at DESC",
+                    "title": "Get Messages"
+                },
+                "add_message": {
+                    "sql": "INSERT INTO messages (message) VALUES (:message)",
+                    "write": true,
+                    "on_success_message": "Message inserted",
+                    "on_success_redirect": "/gpt/messages",
+                    "on_error_message": "Message insert failed",
+                    "on_error_redirect": "/gpt"
+                }
+            }
+        }
+    }
+}
