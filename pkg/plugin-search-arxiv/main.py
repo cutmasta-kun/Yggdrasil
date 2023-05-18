@@ -64,7 +64,7 @@ def search_papers():
     return jsonify({'status': 'success', 'papers': papers}), 200
 
 def main():
-    app.run(debug=True, host="0.0.0.0", port=5004)
+    app.run(debug=False, host="0.0.0.0", port=5004)
 
 if __name__ == "__main__":
     main()

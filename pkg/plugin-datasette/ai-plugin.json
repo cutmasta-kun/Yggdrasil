@@ -3,7 +3,7 @@
   "name_for_human": "Datasette Plugin",
   "name_for_model": "datasette_plugin",
   "description_for_human": "Plugin for interacting with data in Datasette using its JSON API, including the ability to add and retrieve messages.",
-  "description_for_model": "This plugin allows you to interact with a Datasette database using its JSON API. You can retrieve data from the database, explore its structure, and add messages to a specific table.",
+  "description_for_model": "This plugin allows you to interact with a Datasette database using its JSON API. You can retrieve data from the database, explore its structure, and add messages to a specific database.",
   "auth": {
     "type": "none"
   },

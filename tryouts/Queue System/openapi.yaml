@@ -1,0 +1,108 @@
+openapi: 3.0.1
+info:
+  title: General Queuing System
+  description: A generic queuing system for processing tasks. Use this template as a starting point for your specific application.
+  version: 'v1'
+servers:
+  - url: http://localhost:{port}
+    variables:
+      port:
+        default: "5000"
+paths:
+  /api/get-queue-status:
+    get:
+      operationId: getQueueStatus
+      summary: Get the status and result of a task
+      description: This endpoint retrieves the status and result (if the task is finished) of a task based on the provided queue ID.
+      parameters:
+        - in: query
+          name: queueID
+          description: The queue ID of the task
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully retrieved the status and result of the task
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/taskResponse'
+        '400':
+          description: Bad request (e.g., missing or invalid queue ID)
+        '404':
+          description: Queue ID not found
+        '500':
+          description: Internal server error
+      
+  /api/queue-task:
+    post:
+      operationId: queueTask
+      summary: Queues a new task and provides a queue ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/taskRequest'
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/queue'
+
+components:
+  schemas:
+    taskResponse:
+      type: object
+      required:
+        - status
+      properties:     
+        status:
+          type: string
+          description: Status of the task request, 'in-progress', 'failed' or 'done'  
+        result:
+          type: string
+          description: The result of the task
+          nullable: true
+        systemMessage:
+          type: string
+          description: A message from the system that is not a result
+          nullable: true
+
+    queue:
+      type: object
+      required:
+        - status
+        - queueID
+      properties:     
+        status:
+          type: string
+          description: Status of the task request, 'in-progress', 'failed' or 'queued'
+        queueID:
+          type: string
+          description: The queue ID of the task
+          nullable: true          
+        systemMessage:
+          type: string
+          description: A message from the system that is not a result
+          nullable: true                            
+    taskRequest:
+      type: object
+      required:
+      - taskData
+      properties:
+        taskData:
+          type: string
+          description: The data for the task you want to queue
+
+    queueRequest:
+      type: object
+      required:
+      - queueID
+      properties:
+        queueID:
+          type: string
+          description: The queue ID of the task

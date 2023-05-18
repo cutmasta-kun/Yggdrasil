@@ -62,11 +62,11 @@ paths:
       responses:
         '200':
           description: OK
-  /gpt/add_message.json:
+  /messages/add_message.json:
     post:
       operationId: addMessage
       tags:
-        - GPT messages
+        - Messages
       requestBody:
         required: true
         content:
@@ -79,13 +79,13 @@ paths:
       responses:
         '200':
           description: OK
-  /gpt/get_messages.json:
+  /messages/get_messages.json:
     get:
       operationId: getMessages
       tags:
-        - GPT messages
+        - Messages
       summary: Retrieve all messages
-      description: This endpoint retrieves all messages stored in the 'messages' table of the 'gpt' database. The messages are returned in descending order by their creation time.
+      description: This endpoint retrieves all messages stored in the 'messages' table of the 'messages' database. The messages are returned in descending order by their creation time.
       responses:
         '200':
           description: OK

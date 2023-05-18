@@ -34,7 +34,7 @@ def execute_sql_on_db(db_path, sql):
 # Pfad zur Datenbank
 db_paths = {
     "knowledge": "/data/knowledge.db",
-    "gpt": "/data/gpt.db",
+    "messages": "/data/messages.db",
     "migration": "/data/migration.db",
 }
 
@@ -59,5 +59,5 @@ for db_name, db_path in db_paths.items():
                 execute_sql_on_db(db_path, sql)
 
 # Starten von Datasette
-subprocess.run(["datasette", "-h", "0.0.0.0", db_paths["knowledge"], db_paths["gpt"], "--metadata", "metadata.json"])
+subprocess.run(["datasette", "-h", "0.0.0.0", db_paths["knowledge"], db_paths["messages"], "--metadata", "metadata.json"])
 
