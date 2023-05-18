@@ -1,6 +1,6 @@
 openapi: 3.0.1
 info:
-  title: Datasette Plugin API
+  title: Datasette Plugin
   version: 'v1'
 servers:
   - url: http://localhost:5005
@@ -79,6 +79,23 @@ paths:
       responses:
         '200':
           description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    description: "Indicates the successful creation of the resource. In this case, 'Message' refers to the newly created resource."
+                    example: "Message inserted"
+                  redirect:
+                    type: string
+                    description: "Path to the newly created resource. The UUID is generated during the creation of the resource."
+                    example: "/messages/get_message_by_uuid.json?uuid=9a2b9ea8-6198-4695-806a-814099b6cc2d"
+
   /messages/get_messages.json:
     get:
       operationId: getMessages
@@ -86,6 +103,20 @@ paths:
         - Messages
       summary: Retrieve all messages
       description: This endpoint retrieves all messages stored in the 'messages' table of the 'messages' database. The messages are returned in descending order by their creation time.
+      responses:
+        '200':
+          description: OK
+  /messages/get_message_by_uuid.json:
+    get:
+      operationId: getMessageByUUID
+      tags:
+        - Messages
+      parameters:
+      - name: uuid
+        in: query
+        required: true
+        schema:
+          type: string
       responses:
         '200':
           description: OK

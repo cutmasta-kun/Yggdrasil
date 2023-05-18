@@ -8,12 +8,16 @@
                     "title": "Get Messages"
                 },
                 "add_message": {
-                    "sql": "INSERT INTO messages (message) VALUES (:message)",
+                    "sql": "INSERT INTO messages (uuid, message) VALUES (:uuid, :message)",
                     "write": true,
                     "on_success_message": "Message inserted",
-                    "on_success_redirect": "/messages/messages",
+                    "on_success_redirect": "/messages/get_message_by_uuid.json?uuid=",
                     "on_error_message": "Message insert failed",
-                    "on_error_redirect": "/messages"
+                    "on_error_redirect": "/messages.json"
+                },
+                "get_message_by_uuid": {
+                    "sql": "SELECT * FROM messages WHERE uuid = :uuid",
+                    "title": "Get Message by UUID"
                 }
             }
         }

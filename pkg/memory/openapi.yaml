@@ -62,7 +62,7 @@ paths:
       responses:
         '200':
           description: OK
-  /gpt/add_message.json:
+  /messages/add_message.json:
     post:
       operationId: addMessage
       tags:
@@ -79,7 +79,7 @@ paths:
       responses:
         '200':
           description: OK
-  /gpt/get_messages.json:
+  /messages/get_messages.json:
     get:
       operationId: getMessages
       tags:
