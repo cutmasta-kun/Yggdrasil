@@ -14,17 +14,17 @@ def get_long_description():
         return fp.read()
 
 setup(
-    name="datasette-chatgpt-plugin",
-    description="A Datasette plugin that turns a Datasette instance into a ChatGPT plugin",
+    name="memory",
+    description="Memory - A service for storing and retrieving messages and accessing all data within the knowledge base",
     long_description=get_long_description(),
     long_description_content_type="text/markdown",
     author="cutmasta-kun",
     author_email="cutmastakun@gmail.com",
-    url="https://github.com/cutmasta-kun/datasette-chatgpt-plugin",
+    url="https://github.com/cutmasta-kun/memory",
     project_urls={
-        "Issues": "https://github.com/cutmasta-kun/datasette-chatgpt-plugin/issues",
-        "CI": "https://github.com/cutmasta-kun/datasette-chatgpt-plugin/actions",
-        "Changelog": "https://github.com/cutmasta-kun/datasette-chatgpt-plugin/releases",
+        "Issues": "https://github.com/cutmasta-kun/memory/issues",
+        "CI": "https://github.com/cutmasta-kun/memory/actions",
+        "Changelog": "https://github.com/cutmasta-kun/memory/releases",
     },
     license="Apache License, Version 2.0",
     classifiers=[
@@ -32,8 +32,7 @@ setup(
         "License :: OSI Approved :: Apache Software License",
     ],
     version=VERSION,
-    packages=["datasette_chatgpt_plugin"],
-    entry_points={"datasette": ["chatgpt_plugin = datasette_chatgpt_plugin"]},
+    packages=["memory"],
     install_requires=["datasette"],
     extras_require={"test": ["pytest", "pytest-asyncio"]},
     python_requires=">=3.7",

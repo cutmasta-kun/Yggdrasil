@@ -2,21 +2,41 @@
 version: '3.9'
 
 services:
-  plugin-datasette:
+  memory:
     image: datasetteproject/datasette:0.64.3
-    container_name: plugin-datasette
+    container_name: memory
     volumes:
-      - ./../pkg/plugin-datasette/data:/data
-      - ./../pkg/plugin-datasette:/app
+      - ./../pkg/memory/data:/data
+      - ./../pkg/memory:/app
     working_dir: /app
     ports:
-      - "5005:5005"
+      - "5006:8001"
     command: /bin/sh -c "pip install -r requirements.txt && python -u main.py"
     cpu_shares: 1024
     healthcheck:
       test: 
         - CMD-SHELL
         - pgrep -f 'datasette' || exit 1
+      interval: 2s
+      timeout: 2s
+      retries: 3
+
+  plugin-datasette:
+    image: python:slim
+    container_name: plugin-datasette
+    volumes:
+      - ./../pkg/plugin-datasette:/app
+    working_dir: /app
+    ports:
+      - "5005:5005"
+    command: /bin/sh -c "pip install -r requirements.txt && python -u main.py"
+    depends_on:
+      - memory
+    cpu_shares: 1024
+    healthcheck:
+      test: 
+        - CMD-SHELL
+        - pgrep -f 'main.py' || exit 1
       interval: 2s
       timeout: 2s
       retries: 3

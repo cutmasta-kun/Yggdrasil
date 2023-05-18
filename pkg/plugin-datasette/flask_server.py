@@ -34,7 +34,7 @@ def openapi_spec():
 def catch_all(path):
     response = requests.request(
         method=request.method,
-        url=f"http://localhost:8001/{path}",
+        url=f"http://memory:8001/{path}",
         headers={key: value for (key, value) in request.headers if key != 'Host'},
         data=request.get_data(),
         allow_redirects=False)
