@@ -1,12 +1,12 @@
-# test_start.py
+# test_main.py
 import os
 import unittest
 from unittest.mock import patch
-import start
+import main
 import requests
 import json
 
-class TestStart(unittest.TestCase):
+class TestMain(unittest.TestCase):
     class MockResponse:
         def __init__(self, lines):
             self.lines = lines
@@ -19,7 +19,7 @@ class TestStart(unittest.TestCase):
     @patch.dict(os.environ, {'LISTEN_TOPIC_test': 'http://localhost:5000/test'})
     def test_get_listen_topics_from_env(self):
         expected = {'test': 'http://localhost:5000/test'}
-        self.assertDictEqual(start.get_listen_topics_from_env(), expected)
+        self.assertDictEqual(main.get_listen_topics_from_env(), expected)
 
     @patch('time.sleep', return_value=None)  # Dies verhindert, dass der Test tatsächlich schläft
     def test_wait_for_function(self, _):
@@ -28,7 +28,7 @@ class TestStart(unittest.TestCase):
             response.status_code = 200
             return response
 
-        start.wait_for_function('http://localhost:5000/test', request_function=mock_request)
+        main.wait_for_function('http://localhost:5000/test', request_function=mock_request)
 
     @patch('start.wait_for_function')
     def test_subscribe_to_topic_and_forward_messages(self, mock_wait_for_function):
@@ -47,7 +47,7 @@ class TestStart(unittest.TestCase):
             self.assertDictEqual(kwargs["json"], json.loads(test_message))
             return self.MockResponse([])
 
-        start.subscribe_to_topic_and_forward_messages(
+        main.subscribe_to_topic_and_forward_messages(
             test_topic, 
             test_endpoint, 
             get_request_function=mock_get_request, 

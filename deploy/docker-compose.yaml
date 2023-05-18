@@ -85,7 +85,7 @@ services:
       dockerfile: ./deploy/Dockerfile
     image: communication_app
     container_name: communication-app
-    command: python -u start.py
+    command: python -u main.py
     cpu_shares: 256
 #    environment:
 #      DEBUG: true
@@ -95,7 +95,7 @@ services:
     healthcheck:
       test: 
         - CMD-SHELL
-        - pgrep -f 'start.py' || exit 1
+        - pgrep -f 'main.py' || exit 1
       interval: 2s
       timeout: 2s
       retries: 3
@@ -108,13 +108,12 @@ services:
       - ./../pkg/function:/app
     ports:
       - "5000:5000"
-    command: /bin/sh -c "pip install -r requirements.txt && python -u app.py"
+    command: /bin/sh -c "pip install -r requirements.txt && python -u main.py"
     cpu_shares: 1024
-    restart: unless-stopped
     healthcheck:
       test: 
         - CMD-SHELL
-        - pgrep -f 'app.py' || exit 1
+        - pgrep -f 'main.py' || exit 1
       interval: 2s
       timeout: 2s
       retries: 3

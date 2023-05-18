@@ -14,4 +14,4 @@ done
 echo 'Function is up - starting communication-app'
 
 # Starte das Python-Skript
-python -u start.py
+python -u main.py

@@ -1,4 +1,4 @@
-# start.py
+# main.py
 import os
 import requests
 from requests.adapters import HTTPAdapter

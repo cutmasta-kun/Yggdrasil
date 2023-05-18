@@ -1,12 +1,23 @@
-# app.py
-from flask import Flask, request
-import logging
+# flask_server.py
+from flask import Flask, send_file, request, Response
+from flask_cors import CORS
+import requests
 import json
+import logging
+import uuid
 from message_types import Data, Message, MessageJson, Id, Time, Expires, Event, Topic, Title, Tags, Priority, Click, Actions, Attachment
 
-app = Flask(__name__)
-
+# Configurate application
 logging.basicConfig(level=logging.INFO)
+app = Flask(__name__)
+CORS(app)  # Enable CORS
+
+@app.route("/openapi.yaml", methods=['GET'])
+def openapi_spec():
+    host = request.headers['Host']
+    with open("openapi.yaml") as f:
+        text = f.read()
+        return Response(text, mimetype="text/yaml")
 
 @app.route('/log', methods=['HEAD'])
 def logStatus():
@@ -35,8 +46,8 @@ def log():
     actions: Actions = data.get('actions')
     attachment: Attachment = data.get('attachment')
 
-    app.logger.info(f"Received data: {data}")
+    app.logger.info(data)
     return 'OK', 200
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=5000)
+    app.run(debug=False, host="0.0.0.0", port=5000)
