@@ -7,9 +7,9 @@ servers:
 paths:
   /{section}.json:
     get:
-      operationId: listTables
+      operationId: listLongTermMemoryTables
       tags:
-        - Knowledge
+        - LongTermMemory
       parameters:
       - name: section
         in: path
@@ -22,9 +22,9 @@ paths:
           description: OK
   /{section}/{subsection}.json:
     get:
-      operationId: listRows
+      operationId: listLongTermMemoryRows
       tags:
-        - Knowledge
+        - LongTermMemory
       parameters:
       - name: section
         in: path
@@ -43,9 +43,9 @@ paths:
           description: OK
   /{section}/{subsection}/{id}.json:
     get:
-      operationId: getRow
+      operationId: getLongTermMemoryRow
       tags:
-        - Knowledge
+        - LongTermMemory
       parameters:
       - name: section
         in: path
@@ -67,11 +67,11 @@ paths:
       responses:
         '200':
           description: OK
-  /messages/add_message.json:
+  /messages/add_memory.json:
     post:
-      operationId: addMessage
+      operationId: addToShortTermMemory
       tags:
-        - Messages
+        - ShortTermMemory
       requestBody:
         required: true
         content:
@@ -94,34 +94,36 @@ paths:
                     example: true
                   message:
                     type: string
-                    description: "Indicates the successful creation of the resource. In this case, 'Message' refers to the newly created resource."
-                    example: "Message inserted"
+                    description: "Indicates the successful creation of the resource. In this case, 'Memory' refers to the newly created resource."
+                    example: "Memory inserted"
                   redirect:
                     type: string
                     description: "Path to the newly created resource. The UUID is generated during the creation of the resource."
-                    example: "/get_message_by_uuid.json?uuid=9a2b9ea8-6198-4695-806a-814099b6cc2d"
+                    example: "/get_memory_by_uuid.json?uuid=9a2b9ea8-6198-4695-806a-814099b6cc2d"
 
-  /messages/get_messages.json:
+  /messages/get_memories.json:
     get:
-      operationId: getMessages
+      operationId: getShortTermMemoryMemories
       tags:
-        - Messages
-      summary: Retrieve all messages
-      description: This endpoint retrieves all messages. The messages are returned in descending order by their creation time.
+        - ShortTermMemory
+      summary: Retrieve memory previews
+      description: Retrieves previews of all memories. Each preview is the first 50 characters of the memory.
       responses:
         '200':
           description: OK
-  /messages/get_message_by_uuid.json:
+  /messages/get_memory_by_uuid.json:
     get:
-      operationId: getMessageByUUID
+      operationId: getShortTermMemoryMemoryByUUID
       tags:
-        - Messages
+        - ShortTermMemory
       parameters:
       - name: uuid
         in: query
         required: true
         schema:
           type: string
+      summary: Retrieve a full memory
+      description: Retrieves the full text of a memory using its UUID.
       responses:
         '200':
           description: OK
