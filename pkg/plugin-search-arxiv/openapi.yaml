@@ -40,6 +40,11 @@ components:
         query:
           type: string
           description: The query to search for papers.
+        limit:
+          type: integer
+          description: The maximum number of papers to return.
+          default: 10
+          minimum: 1
     searchPapersResponse:
       type: object
       properties:
