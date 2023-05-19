@@ -2,7 +2,7 @@ openapi: 3.0.1
 info:
   title: Arxiv Search Plugin
   description: A plugin that allows the user to search for papers on arXiv using ChatGPT.
-  version: 'v1'
+  version: 'v2'
 servers:
   - url: http://localhost:5004
 paths:
