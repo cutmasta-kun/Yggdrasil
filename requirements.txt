@@ -17,6 +17,7 @@ feedparser==6.0.10
 filelock==3.12.0
 Flask==2.3.2
 Flask-Cors==3.0.10
+Flask-Testing==0.8.1
 h11==0.14.0
 httpcore==0.17.0
 httpx==0.24.0
