@@ -36,15 +36,16 @@ def search_papers():
     if data is None or 'query' not in data:
         abort(400, description="Bad Request: 'query' is required.")
     query = data['query']
+    limit = data.get('limit', 10)  # Get the limit parameter, default to 10 if not provided
     # Search for papers on arXiv
     arxivClient = arxiv.Client(
-        page_size = 5,
+        page_size = limit,  # Use the limit as the page size
         delay_seconds = 3,
         num_retries = 3
     )
     searchQuery = arxiv.Search(
         query = query,
-        max_results = 5,
+        max_results = limit,  # Use the limit as the max results
         sort_by = arxiv.SortCriterion.SubmittedDate
         )
     papers = []
