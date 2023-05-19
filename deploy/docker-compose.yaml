@@ -21,11 +21,11 @@ services:
       timeout: 2s
       retries: 3
 
-  plugin-datasette:
+  plugin-memory-interface:
     image: python:slim
-    container_name: plugin-datasette
+    container_name: plugin-memory-interface
     volumes:
-      - ./../pkg/plugin-datasette:/app
+      - ./../pkg/plugin-memory-interface:/app
     working_dir: /app
     ports:
       - "5005:5005"

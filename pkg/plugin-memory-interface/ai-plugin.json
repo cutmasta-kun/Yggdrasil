@@ -1,0 +1,18 @@
+{
+  "schema_version": "v1",
+  "name_for_human": "Memory Interface Plugin",
+  "name_for_model": "memory_interface_plugin",
+  "description_for_human": "Plugin for interacting with the memory service, acting as a client for accessing the memory.",
+  "description_for_model": "This plugin allows you to interact with a memory service. You can retrieve data from the memory, explore its structure, and add messages to a specific memory.",
+  "auth": {
+    "type": "none"
+  },
+  "api": {
+    "type": "openapi",
+    "url": "http://localhost:5005/openapi.yaml",
+    "is_user_authenticated": false
+  },
+  "logo_url": "http://localhost:5005/logo.png",
+  "contact_email": "cutmastakun@gmail.com",
+  "legal_info_url": "https://example.com/legal"
+}

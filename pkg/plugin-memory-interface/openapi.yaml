@@ -1,59 +1,64 @@
 openapi: 3.0.1
 info:
-  title: Datasette Plugin
+  title: Memory Interface Plugin
   version: 'v1'
 servers:
   - url: http://localhost:5005
 paths:
-  /{database}.json:
+  /{section}.json:
     get:
       operationId: listTables
       tags:
         - Knowledge
       parameters:
-      - name: database
+      - name: section
         in: path
         required: true
         schema:
           type: string
+          default: ""
       responses:
         '200':
           description: OK
-  /{database}/{table}.json:
+  /{section}/{subsection}.json:
     get:
       operationId: listRows
       tags:
         - Knowledge
       parameters:
-      - name: database
+      - name: section
         in: path
         required: true
         schema:
           type: string
-      - name: table
+          default: ""
+      - name: subsection
         in: path
         required: true
         schema:
           type: string
+          default: ""
       responses:
         '200':
           description: OK
-  /{database}/{table}/{id}.json:
+  /{section}/{subsection}/{id}.json:
     get:
       operationId: getRow
       tags:
         - Knowledge
       parameters:
-      - name: database
+      - name: section
         in: path
         required: true
         schema:
           type: string
-      - name: table
+          default: ""
+      - name: subsection
         in: path
         required: true
         schema:
           type: string
+          default: ""
       - name: id
         in: path
         required: true
@@ -94,7 +99,7 @@ paths:
                   redirect:
                     type: string
                     description: "Path to the newly created resource. The UUID is generated during the creation of the resource."
-                    example: "/messages/get_message_by_uuid.json?uuid=9a2b9ea8-6198-4695-806a-814099b6cc2d"
+                    example: "/get_message_by_uuid.json?uuid=9a2b9ea8-6198-4695-806a-814099b6cc2d"
 
   /messages/get_messages.json:
     get:
@@ -102,7 +107,7 @@ paths:
       tags:
         - Messages
       summary: Retrieve all messages
-      description: This endpoint retrieves all messages stored in the 'messages' table of the 'messages' database. The messages are returned in descending order by their creation time.
+      description: This endpoint retrieves all messages. The messages are returned in descending order by their creation time.
       responses:
         '200':
           description: OK
