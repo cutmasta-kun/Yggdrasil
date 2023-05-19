@@ -21,7 +21,7 @@
                 },
                 "get_memories": {
                     "sql": "SELECT substr(message, 1, 50) || CASE WHEN length(message) > 50 THEN '...' ELSE '' END as message, uuid FROM messages ORDER BY created_at DESC",
-                    "title": "Get Messages"
+                    "title": "Get Memories"
                 },
                 "add_memory": {
                     "sql": "INSERT INTO messages (uuid, message) VALUES (:uuid, :message)",
@@ -33,8 +33,8 @@
                 },
                 "get_memory_by_uuid": {
                     "sql": "SELECT * FROM messages WHERE uuid = :uuid",
-                    "title": "Get Message by UUID"
-                }
+                    "title": "Get Memories by UUID"
+                } 
             }
         }
     }
