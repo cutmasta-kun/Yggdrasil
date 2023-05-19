@@ -2,7 +2,7 @@
 version: '3.9'
 
 services:
-  communication-app:
+  communication:
     environment:
 #      DEBUG: true
 #      LISTEN_TOPIC_<UUID>: '<protocol><service_name>/<endpoint>'

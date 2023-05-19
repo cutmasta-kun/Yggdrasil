@@ -79,12 +79,12 @@ services:
       timeout: 2s
       retries: 3
 
-  communication-app:
+  communication:
     build:
       context: ./..
       dockerfile: ./deploy/Dockerfile
-    image: communication_app
-    container_name: communication-app
+    image: communication
+    container_name: communication
     command: python -u main.py
     cpu_shares: 256
 #    environment:

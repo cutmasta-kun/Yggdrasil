@@ -62,30 +62,3 @@ paths:
       responses:
         '200':
           description: OK
-  /messages/add_message.json:
-    post:
-      operationId: addMessage
-      tags:
-        - Messages
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                message:
-                  type: string
-      responses:
-        '200':
-          description: OK
-  /messages/get_messages.json:
-    get:
-      operationId: getMessages
-      tags:
-        - Messages
-      summary: Retrieve all messages
-      description: This endpoint retrieves all messages stored in the 'messages' table of the 'messages' database. The messages are returned in descending order by their creation time.
-      responses:
-        '200':
-          description: OK
