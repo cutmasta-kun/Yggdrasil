@@ -32,6 +32,8 @@ services:
     command: /bin/sh -c "pip install -r requirements.txt && python -u main.py"
     depends_on:
       - memory
+    environment:
+      MEMORY_HOST: 'http://memory:8001'
     cpu_shares: 1024
     healthcheck:
       test: 
