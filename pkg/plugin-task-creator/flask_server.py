@@ -64,6 +64,7 @@ def get_queue_status():
     if task:
         # Return the task status
         return jsonify({
+            "taskData": task[2],
             "status": task[3],
             "result": task[4],
             "systemMessage": task[5]

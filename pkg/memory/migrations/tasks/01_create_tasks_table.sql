@@ -5,5 +5,6 @@ CREATE TABLE IF NOT EXISTS tasks (
     status TEXT NOT NULL CHECK(status IN ('in-progress', 'failed', 'done', 'queued')),
     result TEXT,
     systemMessage TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    metadata TEXT DEFAULT '{}'
 );

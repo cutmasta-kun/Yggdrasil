@@ -1,0 +1,352 @@
+Ich würde gerne nur das simulierte Ergebnis sehen, wenn du so tust, als würdest du den folgenden Pseudocode auf das nachfolgende JSON-Objekt anwenden.
+
+```pseudocode
+// Die Funktion process_taskData nimmt ein Task-Objekt als Eingabe
+function process_taskData(task) {
+    // Sei kreativ und generiere eine Liste von möglichen Antwort-Szenarien basierend auf der taskData
+    // Die verwendeten Daten sollen aber Sinn ergeben
+    possible_scenarios = simulate_possible_answer_scenarios(task['taskData'])
+
+    // Erstellen einer Liste, um die Ergebnisse für alle Szenarien zu speichern
+    scenario_results = []
+
+    // Iterieren über die Liste der möglichen Szenarien
+    for scenario in possible_scenarios {
+        // Erstellen einer Kopie des Task-Objekts für das aktuelle Szenario
+        task_scenario = task.copy()
+
+        // Generieren einer Systemnachricht und einer Antwort basierend auf dem aktuellen Szenario
+        systemMessage, answer, status = scenario
+
+        // Aktualisieren der Felder des Task-Objekts basierend auf dem aktuellen Szenario
+        // `result` setzt sicht zusammen aus: "macht der task so überhaupt sinn?", "ist alles soweit klar?", "gibt es noch bedarf für mehr kontext?" 
+        task_scenario['result'] = answer
+
+        // Status kann die Werte 'done' oder 'failed' enthalten
+        task_scenario['status'] = status
+
+        // SystemMessage enthält eine Rechtfertigung vom verarbeiteten System, warum es den betreffenden `status` und das `result` gewählt hat
+        // im ersten Schritt wird es leer gelassen, da es erst erzeugt werden kann, nachdem `result` und `status` definiert worden sind
+        task_scenario['systemMessage'] = null
+
+        // Hinzufügen des aktualisierten Task-Objekts zur Liste der Szenario-Ergebnisse
+        scenario_results.append(task_scenario)
+    }
+
+    // Zurückgeben der Liste der Szenario-Ergebnisse
+    return scenario_results
+}
+
+```
+
+```json
+
+{
+    "created_at": "2023-05-21 12:53:11",
+    "queueID": "dfef68b1-afe8-4fe0-9322-3e99f5a9e383",
+    "result": null,
+    "status": "queued",
+    "systemMessage": null,
+    "taskData": 'Könntest du bitte die folgenden Daten durchschauen und mir eine Liste von queueIDs zurückgeben, bei denen der task wie ein Test aussieht?
+    <json>
+    [
+        {
+            "created_at": "2023-05-21 16:16:47",
+            "queueID": "ad8391ee-d49b-4735-8092-40350fa3086b",
+            "result": "None",
+            "status": "queued",
+            "systemMessage": "None",
+            "taskData": "Ut nulla reprehenderit minim veniam"
+        },
+        {
+            "created_at": "2023-05-21 12:53:11",
+            "queueID": "dfef68b1-afe8-4fe0-9322-3e99f5a9e383",
+            "result": "None",
+            "status": "queued",
+            "systemMessage": "None",
+            "taskData": "Klappt das etwa jetzt?"
+        },
+        {
+            "created_at": "2023-05-21 12:49:52",
+            "queueID": "8b7ab9ec-4623-4f11-99f5-f9423b7600a1",
+            "result": "None",
+            "status": "queued",
+            "systemMessage": "None",
+            "taskData": "Klappt das etwa jetzt?"
+        },
+        {
+            "created_at": "2023-05-21 12:47:09",
+            "queueID": "0af07fc4-ee8b-458e-93e8-599bacbbc648",
+            "result": "None",
+            "status": "queued",
+            "systemMessage": "None",
+            "taskData": "ich will dass das funktioniert"
+        },
+        {
+            "created_at": "2023-05-21 12:19:59",
+            "queueID": "0e24be2b-a72d-4810-b9be-bcd98215f96d",
+            "result": "None",
+            "status": "queued",
+            "systemMessage": "None",
+            "taskData": "esse ip"
+        },
+        {
+            "created_at": "2023-05-21 11:21:50",
+            "queueID": "f33e72ec-014d-49e5-abde-bc0cf14fbdd9",
+            "result": "None",
+            "status": "queued",
+            "systemMessage": "None",
+            "taskData": "I want to create a task"
+        },
+        {
+            "created_at": "2023-05-21 11:08:04",
+            "queueID": "41be2968-a168-470c-9a85-af4a8480981d",
+            "result": "None",
+            "status": "queued",
+            "systemMessage": "None",
+            "taskData": "Teste einen neuen Task"
+        },
+        {
+            "created_at": "2023-05-21 11:04:04",
+            "queueID": "c69cfed2-2746-4020-aa99-74ed0e267bba",
+            "result": "None",
+            "status": "queued",
+            "systemMessage": "None",
+            "taskData": "Teste einen neuen Task"
+        },
+        {
+            "created_at": "2023-05-21 10:50:42",
+            "queueID": "67674617-2652-46b0-96d1-8688ab7ce76a",
+            "result": "None",
+            "status": "queued",
+            "systemMessage": "None",
+            "taskData": "Teste einen neuen Task"
+        }
+    ]
+    </json>'
+}
+```
+
+
+
+
+# Antwort:
+[
+    {
+        "created_at": "2023-05-21 12:53:11",
+        "queueID": "dfef68b1-afe8-4fe0-9322-3e99f5a9e383",
+        "result": ["41be2968-a168-470c-9a85-af4a8480981d", "c69cfed2-2746-4020-aa99-74ed0e267bba", "67674617-2652-46b0-96d1-8688ab7ce76a"],
+        "status": "done",
+        "systemMessage": "Nach Durchsicht der bereitgestellten Daten scheinen diese Queue-IDs Tests zu beinhalten.",
+        "taskData": 'Könntest du bitte die folgenden Daten durchschauen und mir eine Liste von queueIDs zurückgeben, bei denen der task wie ein Test aussieht?
+        <json>
+        ...
+        </json>'
+    },
+    {
+        "created_at": "2023-05-21 12:53:11",
+        "queueID": "dfef68b1-afe8-4fe0-9322-3e99f5a9e383",
+        "result": null,
+        "status": "failed",
+        "systemMessage": "Die bereitgestellten Daten enthalten keine Information, die darauf hindeutet, dass ein Task wie ein Test aussieht.",
+        "taskData": 'Könntest du bitte die folgenden Daten durchschauen und mir eine Liste von queueIDs zurückgeben, bei denen der task wie ein Test aussieht?
+        <json>
+        ...
+        </json>'
+    },
+    {
+        "created_at": "2023-05-21 12:53:11",
+        "queueID": "dfef68b1-afe8-4fe0-9322-3e99f5a9e383",
+        "result": ["41be2968-a168-470c-9a85-af4a8480981d", "c69cfed2-2746-4020-aa99-74ed0e267bba"],
+        "status": "done",
+        "systemMessage": "Nur diese Queue-IDs scheinen Tests zu beinhalten. Es ist jedoch möglich, dass einige Tests übersehen wurden.",
+        "taskData": 'Könntest du bitte die folgenden Daten durchschauen und mir eine Liste von queueIDs zurückgeben, bei denen der task wie ein Test aussieht?
+        <json>
+        ...
+        </json>'
+    }
+]
+
+
+
+
+Verwende die erstellten Szenarien als Beispiele und füge noch 2 weitere Szenarien hinzu, die ausgehend von `taskData` Sinn machen.
+Fasse alle Szenarien in folgendem Format zusammen. 
+Verwende in diesem Schritt einen passenden Wert für `systemMessage`, der wiederspiegelt, warum `result` und `status` als Antwort für `taskData` herausgekommen ist.
+
+```json
+{
+    "<szenario_1_scenarioName >": {
+        "probability_of_taskData_is_satisfied": <probability_of_taskData_is_satisfied>,
+        "data": {
+            "created_at": "<task['created_at']>",
+            "queueID": "task['queueID']",
+            "result": "<szenario spezifisch>",
+            "status": "<szenario spezifisch>",
+            "systemMessage": "<szenario spezifisch>",
+            "taskData": "task['taskData']"
+        }
+    },
+    "<szenario_2_scenarioName>": {
+        "probability_of_taskData_is_satisfied": <probability_of_taskData_is_satisfied>,
+        "data": {
+            "created_at": "<task['created_at']>",
+            "queueID": "task['queueID']",
+            ...
+}
+```
+Bitte verwende für `probability_of_taskData_is_satisfied` folgende logik:
+"Macht `result` als Antwort auf `taskData` in kombination mit `systemMessage` und `status` sinn?"
+Gib `probability_of_taskData_is_satisfied` in zwischen 0 und 100 an.
+
+
+# Antwort 2
+
+{
+    "scenario_all_tasks_are_tests": {
+        "probability_of_taskData_is_satisfied": 90,
+        "data": {
+            "created_at": "2023-05-21 12:53:11",
+            "queueID": "dfef68b1-afe8-4fe0-9322-3e99f5a9e383",
+            "result": ["41be2968-a168-470c-9a85-af4a8480981d", "c69cfed2-2746-4020-aa99-74ed0e267bba", "67674617-2652-46b0-96d1-8688ab7ce76a"],
+            "status": "done",
+            "systemMessage": "Nach Durchsicht der bereitgestellten Daten scheinen diese Queue-IDs Tests zu beinhalten.",
+            "taskData": "task['taskData']"
+        }
+    },
+    "scenario_no_tasks_are_tests": {
+        "probability_of_taskData_is_satisfied": 10,
+        "data": {
+            "created_at": "2023-05-21 12:53:11",
+            "queueID": "dfef68b1-afe8-4fe0-9322-3e99f5a9e383",
+            "result": null,
+            "status": "failed",
+            "systemMessage": "Die bereitgestellten Daten enthalten keine Information, die darauf hindeutet, dass ein Task wie ein Test aussieht.",
+            "taskData": "task['taskData']"
+        }
+    },
+    "scenario_some_tasks_are_tests": {
+        "probability_of_taskData_is_satisfied": 75,
+        "data": {
+            "created_at": "2023-05-21 12:53:11",
+            "queueID": "dfef68b1-afe8-4fe0-9322-3e99f5a9e383",
+            "result": ["41be2968-a168-470c-9a85-af4a8480981d", "c69cfed2-2746-4020-aa99-74ed0e267bba"],
+            "status": "done",
+            "systemMessage": "Nur diese Queue-IDs scheinen Tests zu beinhalten. Es ist jedoch möglich, dass einige Tests übersehen wurden.",
+            "taskData": "task['taskData']"
+        }
+    },
+    "scenario_all_tasks_are_incomplete_tests": {
+        "probability_of_taskData_is_satisfied": 20,
+        "data": {
+            "created_at": "2023-05-21 12:53:11",
+            "queueID": "dfef68b1-afe8-4fe0-9322-3e99f5a9e383",
+            "result": null,
+            "status": "failed",
+            "systemMessage": "Alle Aufgaben scheinen Tests zu sein, sind jedoch unvollständig und können daher nicht als solche erkannt werden.",
+            "taskData": "task['taskData']"
+        }
+    },
+    "scenario_some_tasks_are_incomplete_tests": {
+        "probability_of_taskData_is_satisfied": 60,
+        "data": {
+            "created_at": "2023-05-21 12:53:11",
+            "queueID": "dfef68b1-afe8-4fe0-9322-3e99f5a9e383",
+            "result": ["41be2968-a168-470c-9a85-af4a8480981d"],
+            "status": "done",
+            "systemMessage": "Einige Aufgaben scheinen unvollständige Tests zu sein. Nur vollständige Tests wurden in den Ergebnissen berücksichtigt.",
+            "taskData": "task['taskData']"
+        }
+    }
+}
+
+
+Ich gebe dir hier nochmal den zu überprüfenden Task. Falls du das deine Antwort noch anpassen will, behebe deine Fehler und generiere eine neue `json` datei. Falls du nach durchsicht des ursprünglichen Tasks weiterhin mit deiner Antwort von Scenarien zufrieden bist, antworte kurz.
+```json
+
+{
+    "created_at": "2023-05-21 12:53:11",
+    "queueID": "dfef68b1-afe8-4fe0-9322-3e99f5a9e383",
+    "result": null,
+    "status": "queued",
+    "systemMessage": null,
+    "taskData": 'Könntest du bitte die folgenden Daten durchschauen und mir eine Liste von queueIDs zurückgeben, bei denen der task wie ein Test aussieht?
+    <json>
+    [
+        {
+            "created_at": "2023-05-21 16:16:47",
+            "queueID": "ad8391ee-d49b-4735-8092-40350fa3086b",
+            "result": "None",
+            "status": "queued",
+            "systemMessage": "None",
+            "taskData": "Ut nulla reprehenderit minim veniam"
+        },
+        {
+            "created_at": "2023-05-21 12:53:11",
+            "queueID": "dfef68b1-afe8-4fe0-9322-3e99f5a9e383",
+            "result": "None",
+            "status": "queued",
+            "systemMessage": "None",
+            "taskData": "Klappt das etwa jetzt?"
+        },
+        {
+            "created_at": "2023-05-21 12:49:52",
+            "queueID": "8b7ab9ec-4623-4f11-99f5-f9423b7600a1",
+            "result": "None",
+            "status": "queued",
+            "systemMessage": "None",
+            "taskData": "Klappt das etwa jetzt?"
+        },
+        {
+            "created_at": "2023-05-21 12:47:09",
+            "queueID": "0af07fc4-ee8b-458e-93e8-599bacbbc648",
+            "result": "None",
+            "status": "queued",
+            "systemMessage": "None",
+            "taskData": "ich will dass das funktioniert"
+        },
+        {
+            "created_at": "2023-05-21 12:19:59",
+            "queueID": "0e24be2b-a72d-4810-b9be-bcd98215f96d",
+            "result": "None",
+            "status": "queued",
+            "systemMessage": "None",
+            "taskData": "esse ip"
+        },
+        {
+            "created_at": "2023-05-21 11:21:50",
+            "queueID": "f33e72ec-014d-49e5-abde-bc0cf14fbdd9",
+            "result": "None",
+            "status": "queued",
+            "systemMessage": "None",
+            "taskData": "I want to create a task"
+        },
+        {
+            "created_at": "2023-05-21 11:08:04",
+            "queueID": "41be2968-a168-470c-9a85-af4a8480981d",
+            "result": "None",
+            "status": "queued",
+            "systemMessage": "None",
+            "taskData": "Teste einen neuen Task"
+        },
+        {
+            "created_at": "2023-05-21 11:04:04",
+            "queueID": "c69cfed2-2746-4020-aa99-74ed0e267bba",
+            "result": "None",
+            "status": "queued",
+            "systemMessage": "None",
+            "taskData": "Teste einen neuen Task"
+        },
+        {
+            "created_at": "2023-05-21 10:50:42",
+            "queueID": "67674617-2652-46b0-96d1-8688ab7ce76a",
+            "result": "None",
+            "status": "queued",
+            "systemMessage": "None",
+            "taskData": "Teste einen neuen Task"
+        }
+    ]
+    </json>'
+}
+```
+
