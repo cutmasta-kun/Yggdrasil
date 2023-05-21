@@ -1,0 +1,18 @@
+{
+  "schema_version": "v1",
+  "name_for_human": "Queue System Plugin",
+  "name_for_model": "queue_system_plugin",
+  "description_for_human": "Plugin for interacting with a generic queue system for processing tasks.",
+  "description_for_model": "This plugin allows you to interact with a generic queue system. You can add tasks to the queue and retrieve the status and result of tasks based on their queue ID.",
+  "auth": {
+    "type": "none"
+  },
+  "api": {
+    "type": "openapi",
+    "url": "http://localhost:5010/openapi.yaml",
+    "is_user_authenticated": false
+  },
+  "logo_url": "http://localhost:5010/logo.png",
+  "contact_email": "cutmastakun@gmail.com",
+  "legal_info_url": "https://example.com/legal"
+}

@@ -1,8 +1,6 @@
-# datasette-chatgpt-plugin
+# queue-system-chatgpt-plugin
 
-Ein Datasette-Plugin, das eine Datasette-Instanz in ein ChatGPT-Plugin verwandelt - so können Sie ChatGPT verwenden, um Fragen zu Ihren Daten zu stellen und Nachrichten in eine spezielle Tabelle einzufügen.
-
-⚠️ **Warnung**: ChatGPT kann immer noch Ergebnisse mit diesem Plugin halluzinieren! Weitere Details zu diesem Problem finden Sie [hier](https://github.com/cutmasta-kun/datasette-chatgpt-plugin/issues/2).
+Ein ChatGPT-Plugin, das eine generische Warteschlange für Aufgaben bereitstellt. Mit diesem Plugin können Sie Aufgaben zur Verarbeitung in eine Warteschlange stellen und den Status und das Ergebnis der Aufgaben abrufen.
 
 ## Installation
 
@@ -29,22 +27,22 @@ Um dieses Plugin zu installieren, folgen Sie den unten stehenden Schritten:
 
 ## Verwendung
 
-Sobald es installiert ist, wird Ihre Datasette-Instanz mit dem neuen [ChatGPT-Plugins](https://openai.com/blog/chatgpt-plugins) System funktionieren - vorausgesetzt, Sie haben Zugang zu dieser Vorschau.
+Sobald es installiert ist, wird Ihr generisches Warteschlangensystem mit dem neuen [ChatGPT-Plugins](https://openai.com/blog/chatgpt-plugins) System funktionieren - vorausgesetzt, Sie haben Zugang zu dieser Vorschau.
 
-Klicken Sie auf `Plugins -> Plugin store -> Install an unverified plugin` und geben Sie die URL Ihrer Datasette-Instanz ein.
+Klicken Sie auf `Plugins -> Plugin store -> Install an unverified plugin` und geben Sie die URL Ihrer generischen Warteschlangensystem-Instanz ein.
 
 Wenn das nicht funktioniert, versuchen Sie `Develop my own plugin -> My manifest is ready` und fügen Sie dann Ihre URL ein.
 
 ChatGPT wird das Plugin entdecken, indem es den `/.well-known/ai-plugin.json` Endpunkt aufruft.
 
-Sie können dann Fragen stellen! Einige Startbeispiele:
+Sie können dann Aufgaben zur Verarbeitung in die Warteschlange stellen und den Status und das Ergebnis der Aufgaben abrufen. Einige Startbeispiele:
 
-- Zeige eine Liste der Tabellen (das ist immer gut, um damit zu beginnen, da es sicherstellt, dass ChatGPT weiß, welche Tabellen verfügbar sind)
-- Zeige die ersten 10 Zeilen der Tabelle `mytable`
-- Füge eine Nachricht zur `messages` Tabelle hinzu
+- Füge eine neue Aufgabe zur Warteschlange hinzu
+- Hole den Status einer Aufgabe anhand ihrer Queue-ID
+- Hole das Ergebnis einer Aufgabe anhand ihrer Queue-ID
 
 Beispiel:
 
-Angenommen, Sie haben eine Tabelle namens `users` in Ihrer Datenbank und möchten die ersten 10 Zeilen dieser Tabelle anzeigen. Sie könnten ChatGPT bitten: "Zeige die ersten 10 Zeilen der Tabelle users". ChatGPT würde dann die entsprechende Anfrage an die Datasette-Instanz senden und Ihnen das Ergebnis präsentieren.
+Angenommen, Sie möchten eine neue Aufgabe zur Verarbeitung in die Warteschlange stellen. Sie könnten ChatGPT bitten: "Füge eine neue Aufgabe zur Warteschlange hinzu". ChatGPT würde dann die entsprechende Anfrage an das generische Warteschlangensystem senden und Ihnen die Queue-ID der neuen Aufgabe präsentieren.
 
-Ebenso könnten Sie eine Nachricht zur `messages` Tabelle hinzufügen, indem Sie ChatGPT bitten: "Füge 'Hallo Welt' zur messages Tabelle hinzu". ChatGPT würde dann die entsprechende Anfrage an die Datasette-Instanz senden und Ihnen eine Bestätigung präsentieren, dass die Nachricht erfolgreich hinzugefügt wurde.
+Ebenso könnten Sie den Status oder das Ergebnis einer Aufgabe abrufen, indem Sie ChatGPT bitten: "Hole den Status der Aufgabe mit der Queue-ID XYZ" oder "Hole das Ergebnis der Aufgabe mit der Queue-ID XYZ". ChatGPT würde dann die entsprechende Anfrage an das generische Warteschlangensystem senden und Ihnen den Status oder das Ergebnis der Aufgabe präsentieren.

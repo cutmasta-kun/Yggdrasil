@@ -35,10 +35,9 @@ def execute_sql_on_db(db_path, sql):
 db_paths = {
     "knowledge": "/data/knowledge.db",
     "messages": "/data/messages.db",
-    "migration": "/data/migration.db",
+    "tasks": "/data/tasks.db"
 }
 
-# Überprüfen und erstellen Sie die Datenbanken
 # Überprüfen und erstellen Sie die Datenbanken
 for db_name, db_path in db_paths.items():
     # Erstellen Sie das Datenbank-Datei, falls es noch nicht existiert
@@ -59,5 +58,5 @@ for db_name, db_path in db_paths.items():
                 execute_sql_on_db(db_path, sql)
 
 # Starten von Datasette
-subprocess.run(["datasette", "-h", "0.0.0.0", db_paths["knowledge"], db_paths["messages"], "--metadata", "metadata.json"])
+subprocess.run(["datasette", "-h", "0.0.0.0", db_paths["knowledge"], db_paths["messages"], db_paths["tasks"], "--metadata", "metadata.json"])
 

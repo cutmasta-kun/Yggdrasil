@@ -4,10 +4,7 @@ info:
   description: A generic queuing system for processing tasks. Use this template as a starting point for your specific application.
   version: 'v1'
 servers:
-  - url: http://localhost:{port}
-    variables:
-      port:
-        default: "5000"
+  - url: http://localhost:5010
 paths:
   /get_queue_status:
     get:
@@ -27,7 +24,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/taskResponse'
+                $ref: '#/components/schemas/TaskResponse'
         '400':
           description: Bad request (e.g., missing or invalid queue ID)
         '404':
@@ -44,25 +41,69 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/taskRequest'
+              $ref: '#/components/schemas/TaskRequest'
       responses:
         "200":
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/queue'
+                $ref: '#/components/schemas/QueueResponse'
+
+  /get_queues:
+    get:
+      operationId: getQueues
+      summary: Get all tasks
+      description: This endpoint retrieves all tasks in the queue.
+      responses:
+        '200':
+          description: Successfully retrieved all tasks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TaskResponse'
+        '404':
+          description: No tasks found
+        '500':
+          description: Internal server error
+
+  /update_task:
+    patch:
+      operationId: updateTask
+      summary: Update a task
+      description: This endpoint updates the status, result, and system message of a task based on the provided queue ID.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskUpdateRequest'
+      responses:
+        '200':
+          description: Successfully updated the task
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskResponse'
+        '400':
+          description: Bad request (e.g., missing or invalid queue ID or status)
+        '404':
+          description: Queue ID not found
+        '500':
+          description: Internal server error
 
 components:
   schemas:
-    taskResponse:
+    TaskResponse:
       type: object
       required:
         - status
       properties:     
         status:
           type: string
-          description: Status of the task request, 'in-progress', 'failed' or 'done'  
+          description: Status of the task request, 'in-progress', 'failed', 'done'  
         result:
           type: string
           description: The result of the task
@@ -72,7 +113,7 @@ components:
           description: A message from the system that is not a result
           nullable: true
 
-    queue:
+    QueueResponse:
       type: object
       required:
         - status
@@ -80,7 +121,7 @@ components:
       properties:     
         status:
           type: string
-          description: Status of the task request, 'in-progress', 'failed' or 'queued'
+          description: Status of the task request, 'in-progress', 'failed', 'queued'
         queueID:
           type: string
           description: The queue ID of the task
@@ -89,7 +130,8 @@ components:
           type: string
           description: A message from the system that is not a result
           nullable: true                            
-    taskRequest:
+
+    TaskRequest:
       type: object
       required:
       - taskData
@@ -98,11 +140,24 @@ components:
           type: string
           description: The data for the task you want to queue
 
-    queueRequest:
+    TaskUpdateRequest:
       type: object
       required:
       - queueID
+      - status
       properties:
         queueID:
           type: string
           description: The queue ID of the task
+        status:
+          type: string
+          description: The new status of the task
+          enum: ['in-progress', 'failed', 'done', 'queued']
+        result:
+          type: string
+          description: The result of the task
+          nullable: true
+        systemMessage:
+          type: string
+          description: A message from the system that is not a result
+          nullable: true

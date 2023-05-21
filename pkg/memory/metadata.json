@@ -1,6 +1,37 @@
 {
     "title": "My Datasette Instance",
     "databases": {
+        "tasks": {
+            "queries": {
+                "get_tasks": {
+                    "sql": "SELECT * FROM tasks ORDER BY created_at DESC",
+                    "title": "Get Tasks"
+                },
+                "get_tasks_by_queueID": {
+                    "sql": "SELECT * FROM tasks WHERE queueID = :queueID",
+                    "title": "Get Tasks by queueID",
+                    "params": ["queueID"]
+                },
+                "add_task": {
+                    "sql": "INSERT INTO tasks (queueID, taskData, status, result, systemMessage) VALUES (:queueID, :taskData, :status, :result, :systemMessage)",
+                    "write": true,
+                    "on_success_message": "Task inserted",
+                    "on_success_redirect": "/tasks/tasks.json",
+                    "on_error_message": "Task insert failed",
+                    "on_error_redirect": "/tasks.json",
+                    "params": ["queueID", "taskData", "status", "result", "systemMessage"]
+                },
+                "update_task": {
+                    "sql": "UPDATE tasks SET status = :status, result = :result, systemMessage = :systemMessage WHERE queueID = :queueID",
+                    "write": true,
+                    "on_success_message": "Task updated",
+                    "on_success_redirect": "/tasks/tasks.json",
+                    "on_error_message": "Task update failed",
+                    "on_error_redirect": "/tasks.json",
+                    "params": ["queueID", "taskData", "status", "result", "systemMessage"]
+                }
+            }
+        },
         "messages": {
             "queries": {
                 "get_messages": {
@@ -19,6 +50,7 @@
                 },
                 "add_message": {
                     "sql": "INSERT INTO messages (uuid, message) VALUES (:uuid, :message)",
+                    "title": "Insert Message",
                     "write": true,
                     "on_success_message": "Message inserted",
                     "on_success_redirect": "/messages/get_messages_by_uuid.json?uuid=",
@@ -42,6 +74,7 @@
                 },
                 "add_memory": {
                     "sql": "INSERT INTO messages (uuid, message) VALUES (:uuid, :message)",
+                    "title": "Insert Memory",
                     "write": true,
                     "on_success_message": "Memory inserted",
                     "on_success_redirect": "/messages/get_memories.json?uuid=",
