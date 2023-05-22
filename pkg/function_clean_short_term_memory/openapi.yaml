@@ -1,0 +1,29 @@
+openapi: 3.0.1
+info:
+  title: Function Clean Short Term Memory
+  description: A service that interacts with a memory service and a task creator to clean short term memory.
+  version: 'v1'
+servers:
+  - url: http://localhost:5021
+paths:
+  /create_task_clean:
+    post:
+      operationId: create_task_clean
+      summary: Create a task and add it to the queue
+      description: |
+        This endpoint creates a new task based on data retrieved from the memory service. 
+        The task data is composed of a predefined text and a list of memories. 
+        The task is then added to a queue for further processing. 
+      responses:
+        '200':
+          description: Successfully queued the task
+          content:
+            text/plain:
+              schema:
+                type: string
+        '500':
+          description: Failed to queue the task or to get data from the memory service
+          content:
+            text/plain:
+              schema:
+                type: string
