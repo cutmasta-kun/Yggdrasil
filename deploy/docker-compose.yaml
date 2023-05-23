@@ -14,7 +14,7 @@ services:
     depends_on:
       - memory
     environment:
-      MEMORY_HOST: 'http://memory:8001'
+      MEMORY_HOST: 'http://plugin-memory-interface:5005'
       TASK_CREATOR_HOST: 'http://plugin-task-creator:5010'
     cpu_shares: 1024
     healthcheck:

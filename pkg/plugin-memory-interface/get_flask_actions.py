@@ -2,6 +2,8 @@
 import requests
 import logging
 import re
+import json
+from response_formatter import sqlite_to_dict
 
 # Definiere die unterstützten Filter und Suchparameter
 SUPPORTED_FILTERS = ['limit']
@@ -30,8 +32,6 @@ def get_action(request, path, MEMORY_HOST):
             db_name, resource, json_ext = re.match(r'^(.+)/get_(.+)(\.json)$', path).groups()
             # Setze den neuen Pfad zusammen
             path = f'{db_name}/get_{resource}_by_{param}{json_ext}'
-
-    logging.info(path)
     
     data = request.get_data()
 
@@ -42,10 +42,23 @@ def get_action(request, path, MEMORY_HOST):
         params=params, 
         data=data,
         allow_redirects=False)
+    
+    logging.info(response.content)
 
-    # Assume the response is not JSON and set response_content accordingly
-    response_content = response.text
+    # Use sqlite_to_dict to get a Python dictionary
+    response_dict = sqlite_to_dict(response.text)
 
-    headers = [('Transfer-Encoding', 'identity')]  # Disable chunked transfer encoding
+    logging.info(response_dict)
+
+    # Check if 'rows' is a key in the dictionary
+    if 'rows' in response_dict:
+        # If it is, set response_content to the value of 'rows'
+        response_content = json.dumps(response_dict['rows'])
+    else:
+        # If 'rows' is not a key in the dictionary, convert the entire dictionary back to a JSON string
+        response_content = json.dumps(response_dict)
+
+    headers = []
 
     return response_content, response.status_code, headers
+

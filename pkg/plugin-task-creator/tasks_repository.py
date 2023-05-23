@@ -5,7 +5,7 @@ import requests
 import json
 
 # Configurate application
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.WARNING)
 
 def add_task(host, task):
     """
@@ -127,7 +127,13 @@ def update_task(host, task):
     :return: True if successful, False otherwise
     """
     # Check if the necessary fields are in the task
-    valid_statuses = ['in-progress', 'failed', 'done', 'queued']
+    valid_statuses = [
+        'in-progress', 
+        'failed', 
+        'done', 
+        'queued'
+        ]
+    
     if not all(key in task for key in ("queueID", "status", "result", "systemMessage")) or task["status"] not in valid_statuses:
         return False
 

@@ -59,11 +59,11 @@
                 },
 
                 "get_memories": {
-                    "sql": "SELECT substr(message, 1, 50) || CASE WHEN length(message) > 50 THEN '...' ELSE '' END as message, uuid FROM messages ORDER BY created_at DESC",
+                    "sql": "SELECT substr(message, 1, 100) || CASE WHEN length(message) > 100 THEN '...' ELSE '' END as message, uuid FROM messages ORDER BY created_at DESC",
                     "title": "Get Memories"
                 },
                 "get_memories_with_limit": {
-                    "sql": "SELECT substr(message, 1, 50) || CASE WHEN length(message) > 50 THEN '...' ELSE '' END as message, uuid FROM messages ORDER BY created_at DESC LIMIT :limit",
+                    "sql": "SELECT substr(message, 1, 100) || CASE WHEN length(message) > 100 THEN '...' ELSE '' END as message, uuid FROM messages ORDER BY created_at DESC LIMIT :limit",
                     "title": "Get Memories with Limit",
                     "params": ["limit"]
                 },

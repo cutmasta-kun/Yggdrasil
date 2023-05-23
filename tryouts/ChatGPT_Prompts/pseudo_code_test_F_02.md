@@ -262,3 +262,16 @@ Nach erneuter Überprüfung des ursprünglichen Tasks bin ich weiterhin mit den 
 # Fazit
 Fail. Dieses Resultat hätte eine Erinnerung markiert, die nur das wort "test" in den ersten 50 charaktern hatte.
 Daraus folge ich, dass das ergebniss anschließend nochmal detailiert abgefragt werden muss in einem weiteren task
+
+
+
+
+
+
+
+
+
+
+{
+    "<column_name>": "<row-value>",
+}

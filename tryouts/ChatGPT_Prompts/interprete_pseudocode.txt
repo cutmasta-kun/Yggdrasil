@@ -3,7 +3,7 @@ Ich würde gerne nur das simulierte Ergebnis sehen, wenn du so tust, als würdes
 ```pseudocode
 // Die Funktion process_taskData nimmt ein Task-Objekt als Eingabe
 function process_taskData(task) {
-    // Sei kreativ und generiere eine Liste von möglichen Antwort-Szenarien basierend auf der taskData
+    // Überlege dir verschiedene Antworten, die als Antwort auf `taskData` passen könnten
     // Die verwendeten Daten sollen aber Sinn ergeben
     possible_scenarios = simulate_possible_answer_scenarios(task['taskData'])
 
@@ -19,7 +19,7 @@ function process_taskData(task) {
         systemMessage, answer, status = scenario
 
         // Aktualisieren der Felder des Task-Objekts basierend auf dem aktuellen Szenario
-        // `result` setzt sicht zusammen aus: "macht der task so überhaupt sinn?", "ist alles soweit klar?", "gibt es noch bedarf für mehr kontext?" 
+        // `result` setzt sicht zusammen aus: "Ergibt der Task Sinn?", "Ist alles soweit klar?", "Gibt es noch bedarf für mehr kontext?" 
         task_scenario['result'] = answer
 
         // Status kann die Werte 'done' oder 'failed' enthalten
@@ -83,7 +83,7 @@ Json Objekt
 
 
 
-Verwende die erstellten Szenarien als Beispiele und füge noch 2 weitere Szenarien hinzu, die ausgehend von `taskData` Sinn machen.
+
 Fasse alle Szenarien in folgendem Format zusammen. 
 Verwende in diesem Schritt einen passenden Wert für `systemMessage`, der wiederspiegelt, warum `result` und `status` als Antwort für `taskData` herausgekommen ist.
 
