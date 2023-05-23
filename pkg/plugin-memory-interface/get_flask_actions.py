@@ -10,7 +10,6 @@ SUPPORTED_FILTERS = ['limit']
 SUPPORTED_SEARCH = ['uuid']
 
 def get_action(request, path, MEMORY_HOST):
-
     params = request.args.to_dict()
     filter_found = False
     search_found = False

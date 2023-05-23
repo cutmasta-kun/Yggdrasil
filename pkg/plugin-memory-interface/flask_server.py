@@ -8,7 +8,7 @@ from post_flask_actions import post_action
 from get_flask_actions import get_action
 
 # Configurate application
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.WARNING)
 app = Flask(__name__)
 CORS(app)  # Enable CORS
 

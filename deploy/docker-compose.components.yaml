@@ -1,0 +1,59 @@
+version: '3.9'
+
+services:  
+  communication:
+    build:
+      context: ./..
+      dockerfile: ./deploy/Dockerfile
+    image: communication
+    container_name: communication
+    command: python -u main.py
+    cpu_shares: 256
+#    environment:
+#      DEBUG: true
+#      LISTEN_TOPIC_<UUID>: '<protocol><service_name>/<endpoint>'
+    depends_on:
+      - function
+    healthcheck:
+      test: 
+        - CMD-SHELL
+        - pgrep -f 'main.py' || exit 1
+      interval: 2s
+      timeout: 2s
+      retries: 3
+
+  function:
+    image: python:slim
+    container_name: function
+    working_dir: /app
+    volumes:
+      - ./../pkg/function:/app
+    ports:
+      - "5000:5000"
+    command: /bin/sh -c "pip install -r requirements.txt && python -u main.py"
+    cpu_shares: 1024
+    healthcheck:
+      test: 
+        - CMD-SHELL
+        - pgrep -f 'main.py' || exit 1
+      interval: 2s
+      timeout: 2s
+      retries: 3
+
+  plugin-search-arxiv:
+    image: python:slim
+    container_name: plugin-search-arxiv
+    working_dir: /app
+    volumes:
+      - ./../pkg/plugin-search-arxiv:/app
+    ports:
+      - "5004:5004"
+    command: /bin/sh -c "pip install -r requirements.txt && python -u main.py"
+    cpu_shares: 1024
+    healthcheck:
+      test: 
+        - CMD-SHELL
+        - pgrep -f 'main.py' || exit 1
+      interval: 2s
+      timeout: 2s
+      retries: 3
