@@ -2,6 +2,29 @@
 version: '3.9'
 
 services:
+  function-ask-question:
+    image: python:slim
+    container_name: function-ask-question
+    volumes:
+      - ./../pkg/function-ask-question:/app
+    working_dir: /app
+    ports:
+      - "5022:5022"
+    command: /bin/sh -c "pip install -r requirements.txt && python -u main.py"
+    depends_on:
+      - memory
+    environment:
+      AI_MODEL: 'gpt-4'
+      OPENAI_API_KEY: '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'
+    cpu_shares: 1024
+    healthcheck:
+      test: 
+        - CMD-SHELL
+        - pgrep -f 'main.py' || exit 1
+      interval: 2s
+      timeout: 2s
+      retries: 3
+
   function-clean-short-term-memory:
     image: python:slim
     container_name: function-clean-short-term-memory
