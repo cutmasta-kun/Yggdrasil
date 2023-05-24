@@ -1,0 +1,54 @@
+openapi: 3.0.1
+info:
+  title: DeepThought Query Interface
+  description: A Flask server that interacts with the OpenAI API.
+  version: 'v1'
+servers:
+  - url: http://localhost:5022
+paths:
+  /ask:
+    post:
+      operationId: ask
+      summary: Send a list of messages to the OpenAI API
+      description: |
+        This endpoint accepts a list of messages and sends them to the OpenAI API. 
+        Each message should be an object with a 'role' and a 'content', and optionally a 'name'.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                messages:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      role:
+                        type: string
+                        description: The role of the author of this message. One of system, user, or assistant.
+                        enum: [system, user, assistant]
+                      content:
+                        type: string
+                        description: The contents of the message.
+                      name:
+                        type: string
+                        description: The name of the author of this message. May contain a-z, A-Z, 0-9, and underscores, with a maximum length of 64 characters.
+                        maxLength: 64
+                        pattern: '^[a-zA-Z0-9_]*$'
+                  description: A list of messages describing the conversation so far.
+      responses:
+        '200':
+          description: Successfully sent the messages to the OpenAI API
+          content:
+            application/json:
+              schema:
+                type: object
+                description: The response from the OpenAI API.
+        '400':
+          description: Failed to send the messages to the OpenAI API
+          content:
+            text/plain:
+              schema:
+                type: string
