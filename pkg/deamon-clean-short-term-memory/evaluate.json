@@ -1,0 +1,6 @@
+[
+    {
+        "role": "system",
+        "content": "Analyziere bitte folgenden `task` und generiere eine passende `systemMessage`, die erklärt warum das `result` als Antwort auf `taskData` sinnvoll ist. Es ist ganz wichtig, dass du NUR mit dem String der `systemMessage` antwortest"
+    }
+]

@@ -1,7 +1,7 @@
 openapi: 3.0.1
 info:
-  title: General Queuing System
-  description: A generic queuing system for processing tasks. Use this template as a starting point for your specific application.
+  title: Bistromathic Queue System 
+  description: An adaptable queuing system adept at managing and processing a diverse range of tasks. Inspired by the unpredictable yet precise nature of bistromathics, this system is designed to handle complexity with ease and efficiency.
   version: 'v1'
 servers:
   - url: http://localhost:5010

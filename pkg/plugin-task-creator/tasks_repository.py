@@ -5,7 +5,7 @@ import requests
 import json
 
 # Configurate application
-logging.basicConfig(level=logging.WARNING)
+logging.basicConfig(level=logging.DEBUG)
 
 def add_task(host, task):
     """
@@ -134,11 +134,19 @@ def update_task(host, task):
         'queued'
         ]
     
-    if not all(key in task for key in ("queueID", "status", "result", "systemMessage")) or task["status"] not in valid_statuses:
+    logging.debug('I AM HERE!')
+
+    logging.debug(task)
+
+    if not all(key in task for key in ("queueID", "status", "systemMessage")) or task["status"] not in valid_statuses:
+        logging.debug('task not valid')
         return False
+
+    logging.debug('task is valid')
 
     # Define the URL for the update_task query
     url = f"{host}/tasks/update_task.json"
+    logging.debug(url)
     # Define the headers for the POST request
     headers = {
         'Content-Type': 'application/json'
@@ -147,9 +155,12 @@ def update_task(host, task):
     data = {
         "queueID": task["queueID"],
         "status": task["status"],
-        "result": task["result"],
+        "result": task.get("result", None),
         "systemMessage": task["systemMessage"]
     }
+
+    logging.debug(data)
+
     try:
         # Send the POST request
         response = requests.post(url, headers=headers, data=json.dumps(data))

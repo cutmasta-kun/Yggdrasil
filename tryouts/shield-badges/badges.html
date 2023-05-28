@@ -1,0 +1,101 @@
+<html>
+    <h1>Badges toggler</h1>
+    <div id="placer">
+        <div id="wrapper" onclick="toggleClass(event)">
+            <div data-status="" id="initial" class="badge" style="opacity: 1; content: url('https://img.shields.io/static/v1?label=Please_wait&message=Click_me&color=gray')"></div>
+            <div id="active" class="badge" style="opacity: 0;"></div>
+            <div id="next" class="badge" style="opacity: 0;"></div>
+        </div>
+    </div>
+
+    <style>
+        #placer {
+            display: grid;
+            justify-content: center;
+            align-items: center;
+        }
+        html, body {
+            width: 100%;
+            height: 100vh;
+            padding: 0;
+            margin: 0;
+        }
+        #wrapper {
+            position: relative;
+            width: 100%
+        }
+        .badge {
+            left: 0;
+            top: 0;
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        #down, #up{
+            position: absolute;
+            left:0;
+            top:0;
+        }
+
+        @keyframes fadeInBounce {
+            0% { transform: scale(0.5); opacity: 0; }
+            25% { transform: scale(1.2); opacity: .7; }
+            50% { transform: scale(0.9); opacity: 1; }
+            75% { transform: scale(1.05); }
+            100% { transform: scale(1);  }
+        }
+
+        @keyframes fadeOutBounce {
+            0% { transform: scale(1); opacity: 1; }
+            25% { transform: scale(1.2);  }
+            50% { transform: scale(0.7); opacity: 0.5; }
+            75% { transform: scale(0.5); opacity: 0; }
+        }
+    </style>
+    
+    <script>
+        const badges = {
+            up: "https://img.shields.io/static/v1?label=api.service-host.de&message=up&color=green",
+            down: "https://img.shields.io/static/v1?label=api.service-host.de&message=down&color=red"
+        };
+    
+        let currentState = ""
+        let nextState = ""
+        let removeBadge = undefined
+    
+        const toggleClass = (event) => {
+            const wrapper = document.getElementById('wrapper')
+            
+            const badgeClicked = event.target
+
+            const clickedStatus = badgeClicked.dataset.status
+
+            console.log(clickedStatus)
+
+            let badgeNext = document.getElementById('next')
+
+            if (Object.keys(badges).indexOf(clickedStatus) < 0 ) {
+                nextState = 0
+                removeBadge = badgeClicked
+                badgeNext = document.getElementById('active')
+                badgeNext.style.content = `url(${badges[Object.keys(badges)[nextState]]})`
+                badgeNext.dataset.status = Object.keys(badges)[nextState]
+            } else {
+                currentState = Object.keys(badges).indexOf(clickedStatus)
+                nextState = currentState == (Object.keys(badges).length - 1) ? 0 : currentState + 1
+            }
+            
+            badgeClicked.style.animation = "fadeOutBounce .3s forwards";
+            badgeNext.style.animation = "fadeInBounce .3s forwards";
+
+            setTimeout(() => {
+                badgeClicked.style.opacity = '0'
+                badgeNext.style.opacity = '1'
+
+                if (removeBadge !== undefined) {
+                    wrapper.removeChild(removeBadge)
+                }
+            }, 300)
+        }
+    </script>
+</html>

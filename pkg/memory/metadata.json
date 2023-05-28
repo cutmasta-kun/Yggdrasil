@@ -28,7 +28,7 @@
                     "on_success_redirect": "/tasks/tasks.json",
                     "on_error_message": "Task update failed",
                     "on_error_redirect": "/tasks.json",
-                    "params": ["queueID", "taskData", "status", "result", "systemMessage"]
+                    "params": ["queueID", "status", "result", "systemMessage"]
                 }
             }
         },

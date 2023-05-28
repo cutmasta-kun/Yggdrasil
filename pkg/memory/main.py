@@ -5,7 +5,7 @@ import subprocess
 import logging
 
 # Configurate application
-logging.basicConfig(level=logging.WARNING)
+logging.basicConfig(level=logging.DEBUG)
 
 def load_sql_file(file_path):
     with open(file_path, 'r') as file:

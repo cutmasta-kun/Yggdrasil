@@ -2,6 +2,24 @@
 version: '3.9'
 
 services:
+  deamon-clean-short-term-memory:
+    image: python:slim
+    container_name: deamon-clean-short-term-memory
+    volumes:
+      - ./../pkg/deamon-clean-short-term-memory:/app
+    working_dir: /app
+    command: /bin/sh -c "pip install -r requirements.txt && python -u main.py"
+    depends_on:
+      - memory
+    cpu_shares: 1024
+    healthcheck:
+      test: 
+        - CMD-SHELL
+        - pgrep -f 'main.py' || exit 1
+      interval: 2s
+      timeout: 2s
+      retries: 3
+
   function-ask-question:
     image: python:slim
     container_name: function-ask-question
@@ -119,6 +137,45 @@ services:
     command: /bin/sh -c "pip install -r requirements.txt && python -u main.py"
 #    environment:
 #      TOPIC: 'string'
+    cpu_shares: 1024
+    healthcheck:
+      test: 
+        - CMD-SHELL
+        - pgrep -f 'main.py' || exit 1
+      interval: 2s
+      timeout: 2s
+      retries: 3
+      
+  communication:
+    build:
+      context: ./..
+      dockerfile: ./deploy/Dockerfile
+    image: communication
+    container_name: communication
+    command: python -u main.py
+    cpu_shares: 256
+#    environment:
+#      DEBUG: true
+#      LISTEN_TOPIC_<UUID>: '<protocol><service_name>/<endpoint>'
+    depends_on:
+      - function
+    healthcheck:
+      test: 
+        - CMD-SHELL
+        - pgrep -f 'main.py' || exit 1
+      interval: 2s
+      timeout: 2s
+      retries: 3
+
+  function:
+    image: python:slim
+    container_name: function
+    working_dir: /app
+    volumes:
+      - ./../pkg/function:/app
+    ports:
+      - "5000:5000"
+    command: /bin/sh -c "pip install -r requirements.txt && python -u main.py"
     cpu_shares: 1024
     healthcheck:
       test: 

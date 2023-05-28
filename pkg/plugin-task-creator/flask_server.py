@@ -6,7 +6,7 @@ import os
 from tasks_repository import get_tasks, add_task, get_task_by_queueID, update_task
 
 # Configurate application
-logging.basicConfig(level=logging.WARNING)
+logging.basicConfig(level=logging.DEBUG)
 app = Flask(__name__)
 CORS(app)  # Enable CORS
 

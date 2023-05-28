@@ -1,0 +1,92 @@
+<html>
+    <h1>Riesen überschrift!</h1>
+    <div id="placer">
+        <div id="wrapper" onclick="toggleClass()">
+            <div id="status-up" class="badge" style="opacity: 1;"></div>
+            <div id="status-down" class="badge" style="opacity: 0;"></div>
+        </div>
+    </div>
+
+    <style>
+        #placer {
+            display: grid;
+            justify-content: center;
+            align-items: center;
+        }
+        html, body {
+            width: 100%;
+            height: 100vh;
+            padding: 0;
+            margin: 0;
+        }
+        #wrapper {
+            position: relative;
+            width: 100%
+        }
+        .badge {
+            left: 0;
+            top: 0;
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        #status-up {
+            content: url(https://img.shields.io/static/v1?label=api.service-host.de&message=up&color=green);
+        }
+        #status-down {
+            position: absolute;
+            left:0;
+            top:0;
+            content: url(https://img.shields.io/static/v1?label=api.service-host.de&message=down&color=red);
+        }
+
+        @keyframes fadeInBounce {
+            0% { transform: scale(0.5); opacity: 0; }
+            25% { transform: scale(1.2); opacity: .7; }
+            50% { transform: scale(0.9); opacity: 1; }
+            75% { transform: scale(1.05); }
+            100% { transform: scale(1);  }
+        }
+
+        @keyframes fadeOutBounce {
+            0% { transform: scale(1); opacity: 1; }
+            25% { transform: scale(1.2);  }
+            50% { transform: scale(0.7); opacity: 0.5; }
+            75% { transform: scale(0.5); opacity: 0; }
+        }
+    </style>
+    
+    <script>
+        const badges = {
+            up: "https://img.shields.io/static/v1?label=api.service-host.de&message=up&color=green",
+            down: "https://img.shields.io/static/v1?label=api.service-host.de&message=down&color=red"
+        };
+    
+        let currentState = "up";
+    
+        const toggleClass = () => {
+            const badgeUp = document.getElementById('status-up')
+            const badgeDown = document.getElementById('status-down')
+    
+            // Determine which animation to use based on the current opacity
+            if (badgeUp.style.opacity == "1") {
+                badgeUp.style.animation = "fadeOutBounce .3s forwards";
+                badgeDown.style.animation = "fadeInBounce .3s forwards";
+            } else {
+                badgeUp.style.animation = "fadeInBounce .3s forwards";
+                badgeDown.style.animation = "fadeOutBounce .3s forwards";
+            }
+    
+            // Swap opacity
+            badgeUp.style.opacity = badgeUp.style.opacity == "0" ? "1" : "0";
+            badgeDown.style.opacity = badgeDown.style.opacity == "0" ? "1" : "0";
+    
+            // Swap the current state and update the URLs
+            currentState = currentState == "up" ? "down" : "up";
+            badgeUp.style.content = `url(${badges[currentState]})`;
+            badgeDown.style.content = `url(${badges[currentState]})`;
+        }
+    </script>
+    
+    
+</html>
