@@ -2,10 +2,17 @@
 version: '3.9'
 
 services:
-  communication:
+  function-ask-question:
     environment:
-#      DEBUG: true
-#      LISTEN_TOPIC_<UUID>: '<protocol><service_name>/<endpoint>'
-    volumes:
-      - ./../pkg/communication:/app
-#    restart: unless-stopped
+#      AI_MODEL: 'gpt-4'
+      AI_MODEL: 'gpt-3.5-turbo'
+      OPENAI_API_KEY: '<open_ai_key>'
+
+  plugin-send-ntfy:
+    environment:
+      TOPIC: '<topic>'
+      
+  communication-hub:
+    environment:
+      LISTEN_TOPICS: 'topic1:http://service1:port1/endpoint1,topic2:http://service2:port2/endpoint2'
+#      LISTEN_TOPICS: '<topic>:http://function-log-communication:5000/log'

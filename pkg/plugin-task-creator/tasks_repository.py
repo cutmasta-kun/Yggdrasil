@@ -5,7 +5,7 @@ import requests
 import json
 
 # Configurate application
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 def add_task(host, task):
     """
@@ -128,13 +128,12 @@ def update_task(host, task):
     """
     # Check if the necessary fields are in the task
     valid_statuses = [
-        'in-progress', 
-        'failed', 
-        'done', 
-        'queued'
+        'in-progress',
+        'failed',
+        'done',
+        'queued',
+        'need-review'
         ]
-    
-    logging.debug('I AM HERE!')
 
     logging.debug(task)
 

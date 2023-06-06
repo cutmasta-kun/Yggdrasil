@@ -1,6 +1,5 @@
 # get_flask_actions.py
 import requests
-import logging
 import re
 import json
 from response_formatter import sqlite_to_dict
@@ -41,13 +40,10 @@ def get_action(request, path, MEMORY_HOST):
         params=params, 
         data=data,
         allow_redirects=False)
-    
-    logging.info(response.content)
+
 
     # Use sqlite_to_dict to get a Python dictionary
     response_dict = sqlite_to_dict(response.text)
-
-    logging.info(response_dict)
 
     # Check if 'rows' is a key in the dictionary
     if 'rows' in response_dict:

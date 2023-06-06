@@ -6,7 +6,7 @@ import os
 from tasks_repository import get_tasks, add_task, get_task_by_queueID, update_task
 
 # Configurate application
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 app = Flask(__name__)
 CORS(app)  # Enable CORS
 
@@ -90,9 +90,9 @@ def queue_task():
 @app.route('/update_task', methods=['PATCH'])
 def update_task_action():
     # Get the task data from the request
-    taskData = request.get_json()
+    task = request.get_json()
     # Update the task in the memory
-    result = update_task(MEMORY_HOST, taskData)
+    result = update_task(MEMORY_HOST, task)
     # If the update was successful, return a success response
     if result:
         return jsonify({

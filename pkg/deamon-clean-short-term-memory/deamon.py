@@ -6,11 +6,11 @@ import logging
 import json
 
 # Configurate deamon
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
-TASK_CREATOR_GET_TASKS = os.getenv('MEMORY_HOST', 'http://plugin-task-creator:5010/get_queues')
-TASK_CREATOR_UPDATE_TASK = os.getenv('MEMORY_HOST', 'http://plugin-task-creator:5010/update_task')
-QUESTION_SOLVER_ASK_QUESTION = os.getenv('MEMORY_HOST', 'http://function-ask-question:5022/ask')
+TASK_CREATOR_GET_TASKS = os.getenv('TASK_CREATOR_GET_TASKS', 'http://plugin-memory-interface:5005/tasks/get_tasks_with_metadata.json')
+TASK_CREATOR_UPDATE_TASK = os.getenv('TASK_CREATOR_UPDATE_TASK', 'http://plugin-task-creator:5010/update_task')
+QUESTION_SOLVER_ASK_QUESTION = os.getenv('QUESTION_SOLVER_ASK_QUESTION', 'http://function-ask-question:5022/ask')
 
 def get_tasks():
     # Step 1: Send a GET request to the memory to retrieve the tasks
@@ -89,6 +89,24 @@ def generate_system_message(task):
 
     return result
 
+def find_task(tasks, criteria):
+    """
+    Find the first task in the list of tasks that satisfies all the criteria.
+
+    :param tasks: List of tasks.
+    :param criteria: Dictionary of criteria. Each key-value pair in the dictionary is a criterion that the task must satisfy.
+    :return: The first task that satisfies all the criteria, or None if no such task is found.
+    """
+    for task in tasks:
+        if all(task.get(key) == value for key, value in criteria.items()):
+            # If the task has metadata, check if it satisfies the criteria
+            if 'metadata' in task:
+                metadata = json.loads(task['metadata'])
+                if all(metadata.get(key) == value for key, value in criteria.items() if key.startswith('metadata.')):
+                    return task
+            else:
+                return task
+    return None
 
 def check_tasks():
     try:
@@ -104,8 +122,8 @@ def check_tasks():
     logging.info('tasks found...')
     logging.debug(tasks)
 
-    # Find the first task with status 'queued'
-    task = next((task for task in tasks if task['status'] == 'queued'), None)
+    # task = find_task(tasks, {'status': 'queued', 'metadata.type': 'myType'})
+    task = find_task(tasks, {'status': 'queued'})
 
     # happy_path: found task which satisfied criteria
 

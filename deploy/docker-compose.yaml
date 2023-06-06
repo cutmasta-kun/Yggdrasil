@@ -8,7 +8,9 @@ services:
     volumes:
       - ./../pkg/deamon-clean-short-term-memory:/app
     working_dir: /app
-    command: /bin/sh -c "pip install -r requirements.txt && python -u main.py"
+    command: >
+      /bin/sh -c "pip install -r requirements.txt 
+      && python -u main.py"
     depends_on:
       - memory
     cpu_shares: 1024
@@ -28,7 +30,9 @@ services:
     working_dir: /app
     ports:
       - "5022:5022"
-    command: /bin/sh -c "pip install -r requirements.txt && python -u main.py"
+    command: >
+      /bin/sh -c "pip install -r requirements.txt 
+      && python -u main.py"
     depends_on:
       - memory
     cpu_shares: 1024
@@ -48,7 +52,9 @@ services:
     working_dir: /app
     ports:
       - "5021:5021"
-    command: /bin/sh -c "pip install -r requirements.txt && python -u main.py"
+    command: >
+      /bin/sh -c "pip install -r requirements.txt 
+      && python -u main.py"
     depends_on:
       - memory
     environment:
@@ -135,8 +141,6 @@ services:
     ports:
       - "5003:5003"
     command: /bin/sh -c "pip install -r requirements.txt && python -u main.py"
-#    environment:
-#      TOPIC: 'string'
     cpu_shares: 1024
     healthcheck:
       test: 
@@ -146,19 +150,16 @@ services:
       timeout: 2s
       retries: 3
       
-  communication:
-    build:
-      context: ./..
-      dockerfile: ./deploy/Dockerfile
-    image: communication
-    container_name: communication
-    command: python -u main.py
+  communication-hub:
+    image: python:slim
+    container_name: communication-hub
+    working_dir: /app
+    volumes:
+      - ./../pkg/communication-hub:/app
+    command: >
+      /bin/sh -c "pip install -r requirements.txt 
+      && python -u main.py"
     cpu_shares: 256
-#    environment:
-#      DEBUG: true
-#      LISTEN_TOPIC_<UUID>: '<protocol><service_name>/<endpoint>'
-    depends_on:
-      - function
     healthcheck:
       test: 
         - CMD-SHELL
@@ -167,12 +168,12 @@ services:
       timeout: 2s
       retries: 3
 
-  function:
+  function-log-communication:
     image: python:slim
-    container_name: function
+    container_name: function-log-communication
     working_dir: /app
     volumes:
-      - ./../pkg/function:/app
+      - ./../pkg/function-log-communication:/app
     ports:
       - "5000:5000"
     command: /bin/sh -c "pip install -r requirements.txt && python -u main.py"

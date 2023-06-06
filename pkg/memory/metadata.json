@@ -3,14 +3,27 @@
     "databases": {
         "tasks": {
             "queries": {
+                "get_tasks_with_metadata": {
+                    "sql": "SELECT id, queueID, taskData, status, result, systemMessage, created_at, metadata FROM tasks ORDER BY created_at DESC",
+                    "title": "Get Tasks"
+                },
                 "get_tasks": {
-                    "sql": "SELECT * FROM tasks ORDER BY created_at DESC",
+                    "sql": "SELECT id, queueID, taskData, status, result, systemMessage, created_at FROM tasks ORDER BY created_at DESC",
                     "title": "Get Tasks"
                 },
                 "get_tasks_by_queueID": {
                     "sql": "SELECT * FROM tasks WHERE queueID = :queueID",
                     "title": "Get Tasks by queueID",
                     "params": ["queueID"]
+                },
+                "add_task_with_metadata": {
+                    "sql": "INSERT INTO tasks (queueID, taskData, status, result, systemMessage, metadata) VALUES (:queueID, :taskData, :status, :result, :systemMessage, :metadata)",
+                    "write": true,
+                    "on_success_message": "Task inserted",
+                    "on_success_redirect": "/tasks/tasks.json",
+                    "on_error_message": "Task insert failed",
+                    "on_error_redirect": "/tasks.json",
+                    "params": ["queueID", "taskData", "status", "result", "systemMessage", "metadata"]
                 },
                 "add_task": {
                     "sql": "INSERT INTO tasks (queueID, taskData, status, result, systemMessage) VALUES (:queueID, :taskData, :status, :result, :systemMessage)",
