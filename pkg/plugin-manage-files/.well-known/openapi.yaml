@@ -1,0 +1,123 @@
+openapi: 3.0.1
+info:
+  title: Plugin Manage Files
+  description: A plugin that allows the user to create, edit, and execute commands in files using FastAPI.
+  version: 'v1'
+servers:
+  - url: http://localhost:5101
+paths:
+  /create-file:
+    post:
+      operationId: create_file
+      summary: Create a new file
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateFileRequest'
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequestResponse'
+
+  /run:
+    post:
+      operationId: run_command
+      summary: Execute a shell command
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RunCommandRequest'
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequestResponse'
+
+  /edit-file:
+    post:
+      operationId: edit_file
+      summary: Edit the content of an existing file
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EditFileRequest'
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequestResponse'
+
+components:
+  schemas:
+    CreateFileRequest:
+      type: object
+      required:
+        - filename
+        - content
+      properties:
+        filename:
+          type: string
+          description: The name of the file to be created.
+        content:
+          type: string
+          description: The content to be written to the file.
+
+    RunCommandRequest:
+      type: object
+      required:
+        - command
+      properties:
+        command:
+          type: string
+          description: The shell command to be executed.
+
+    EditFileRequest:
+      type: object
+      required:
+        - filename
+        - mode
+      properties:
+        filename:
+          type: string
+          description: The name of the file to be edited.
+        content:
+          type: string
+          description: The content to be appended to the file (if mode is "append").
+        mode:
+          type: string
+          description: The editing mode, either "append" or "modify".
+        start_line:
+          type: integer
+          description: The start line of the range to be edited (if mode is "modify").
+        end_line:
+          type: integer
+          description: The end line of the range to be edited (if mode is "modify" and a range is being edited).
+        new_content:
+          type: string
+          description: The new content to be inserted in the specified line or range (if mode is "modify").
+
+    BadRequestResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          description: A description of the error.

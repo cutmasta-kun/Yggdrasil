@@ -1,0 +1,18 @@
+{
+    "schema_version": "v1",
+    "name_for_human": "Plugin Manage Files",
+    "name_for_model": "plugin_manage_files",
+    "description_for_human": "Plugin for creating, editing, and executing commands in files using FastAPI.",
+    "description_for_model": "This plugin allows you to create, edit, and execute commands in files. You can create a new file, append or modify its content, and run shell commands.",
+    "auth": {
+      "type": "none"
+    },
+    "api": {
+      "type": "openapi",
+      "url": "http://localhost:5101/.well-known/openapi.yaml",
+      "is_user_authenticated": false
+    },
+    "logo_url": "http://localhost:5101/.well-known/logo.png",
+    "contact_email": "your-email@example.com",
+    "legal_info_url": "https://example.com/legal"
+}
