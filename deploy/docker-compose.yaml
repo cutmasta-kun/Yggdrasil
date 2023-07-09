@@ -11,7 +11,10 @@ services:
     ports:
       - "5101:5003"
     command: >
-      /bin/sh -c "pip install -r requirements.txt 
+      /bin/sh -c "python -m venv venv 
+      && . venv/bin/activate 
+      && python --version
+      && pip install -r requirements.txt 
       && python -u main.py"
     cpu_shares: 1024
     healthcheck:

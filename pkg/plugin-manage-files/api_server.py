@@ -7,7 +7,7 @@ import subprocess
 
 app = FastAPI()
 
-DATA_DIR = "/app/data"
+DATA_DIR = "./data"
 
 app.mount("/.well-known", StaticFiles(directory=".well-known"), name="static")
 
