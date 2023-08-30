@@ -1,10 +1,11 @@
 # flask_server.py
 from flask import Flask, send_file, request, Response
 from flask_cors import CORS
+import requests
 
 import os
 from post_flask_actions import post_action
-from get_flask_actions import get_action
+from get_flask_actions import determine_path, format_response_content
 
 # Configurate application
 app = Flask(__name__)
@@ -39,15 +40,27 @@ def catch_all_get(path):
     if not path.endswith('.json'):
         path += '.json'
 
-    response_content, status_code, headers = get_action(request, path, MEMORY_HOST)
-    response = app.response_class(
+    try:
+        determined_path = determine_path(path, request.args.to_dict())
+    except ValueError as e:
+        return str(e), 400
+
+    response = requests.request(
+        method=request.method,
+        url=f"{MEMORY_HOST}/{determined_path}",
+        headers={key: value for (key, value) in request.headers if key != 'Host'},
+        params=request.args.to_dict(), 
+        data=request.get_data(),
+        allow_redirects=False)
+
+    response_content = format_response_content(response.text)
+
+    return app.response_class(
         response_content,
-        status=status_code,
-        headers=headers,
+        status=response.status_code,
+        headers={},
         mimetype='application/json'
     )
-
-    return response
 
 @app.route('/', defaults={'path': ''}, methods=['POST'])
 @app.route('/<path:path>', methods=['POST'])

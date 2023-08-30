@@ -161,3 +161,6 @@ cython_debug/
 
 .idea/
 .vscode
+
+# Project Files
+ui/node_modules

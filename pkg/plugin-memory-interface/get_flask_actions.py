@@ -1,59 +1,44 @@
 # get_flask_actions.py
-import requests
 import re
 import json
+import logging
 from response_formatter import sqlite_to_dict
 
-# Definiere die unterstützten Filter und Suchparameter
+logging.basicConfig(level=logging.INFO)
+
 SUPPORTED_FILTERS = ['limit']
 SUPPORTED_SEARCH = ['uuid']
 
-def get_action(request, path, MEMORY_HOST):
-    params = request.args.to_dict()
+# Regular Expression Konstanten
+PATH_PATTERN = r'^.+/get_.+\.json$'
+PATH_EXTRACT_PATTERN = r'^(.+)/get_(.+)(\.json)$'
+
+def construct_path(db_name, resource, param, json_ext, is_search):
+    """Konstruiert einen neuen Pfad basierend auf den gegebenen Parametern."""
+    action = 'by' if is_search else 'with'
+    return f'{db_name}/get_{resource}_{action}_{param}{json_ext}'
+
+def determine_path(path, params):
     filter_found = False
-    search_found = False
 
     for param in params:
         # Wenn der Parameter unterstützt wird und der Pfad dem Muster entspricht
-        if param in SUPPORTED_FILTERS and re.match(r'^.+/get_.+\.json$', path):
+        if param in SUPPORTED_FILTERS and re.match(PATH_PATTERN, path):
             filter_found = True
-            # Teile den Pfad in drei Teile: Datenbankname, Ressourcenname und '.json'
-            db_name, resource, json_ext = re.match(r'^(.+)/get_(.+)(\.json)$', path).groups()
-            # Setze den neuen Pfad zusammen
-            path = f'{db_name}/get_{resource}_with_{param}{json_ext}'
-        if param in SUPPORTED_SEARCH and re.match(r'^.+/get_.+\.json$', path):
+            db_name, resource, json_ext = re.match(PATH_EXTRACT_PATTERN, path).groups()
+            path = construct_path(db_name, resource, param, json_ext, False)
+        elif param in SUPPORTED_SEARCH and re.match(PATH_PATTERN, path):
             if filter_found:
-                # Ein Filterparameter wurde bereits gefunden, gib einen Fehler zurück
-                return "error: search and filter parameters set. Only one can be provided at a time", 400, {}
-            search_found = True
-            # Teile den Pfad in drei Teile: Datenbankname, Ressourcenname und '.json'
-            db_name, resource, json_ext = re.match(r'^(.+)/get_(.+)(\.json)$', path).groups()
-            # Setze den neuen Pfad zusammen
-            path = f'{db_name}/get_{resource}_by_{param}{json_ext}'
+                raise ValueError("Both search and filter parameters set. Only one can be provided at a time.")
+            db_name, resource, json_ext = re.match(PATH_EXTRACT_PATTERN, path).groups()
+            path = construct_path(db_name, resource, param, json_ext, True)
     
-    data = request.get_data()
+    return path
 
-    response = requests.request(
-        method=request.method,
-        url=f"{MEMORY_HOST}/{path}",
-        headers={key: value for (key, value) in request.headers if key != 'Host'},
-        params=params, 
-        data=data,
-        allow_redirects=False)
+def format_response_content(response_text):
+    response_dict = sqlite_to_dict(response_text)
 
-
-    # Use sqlite_to_dict to get a Python dictionary
-    response_dict = sqlite_to_dict(response.text)
-
-    # Check if 'rows' is a key in the dictionary
     if 'rows' in response_dict:
-        # If it is, set response_content to the value of 'rows'
-        response_content = json.dumps(response_dict['rows'])
+        return json.dumps(response_dict['rows'])
     else:
-        # If 'rows' is not a key in the dictionary, convert the entire dictionary back to a JSON string
-        response_content = json.dumps(response_dict)
-
-    headers = []
-
-    return response_content, response.status_code, headers
-
+        return json.dumps(response_dict)

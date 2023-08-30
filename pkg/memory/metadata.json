@@ -1,6 +1,44 @@
 {
-    "title": "My Datasette Instance",
+    "title": "Memory Datasette Instance",
+    "writable": true,
     "databases": {
+        "conversations": {
+            "queries": {
+                "create_conversation": {
+                    "sql": "INSERT INTO conversations (uuid) VALUES (:uuid)",
+                    "write": true,
+                    "on_success_message": "Conversation created",
+                    "on_error_message": "Conversation creation failed",
+                    "params": ["uuid"]
+                },
+                "delete_conversation": {
+                    "sql": "DELETE FROM conversations WHERE uuid = :uuid",
+                    "write": true,
+                    "on_success_message": "Conversation deleted",
+                    "on_error_message": "Conversation deletion failed",
+                    "params": ["uuid"]
+                },
+                "add_speech_bubble": {
+                    "sql": "INSERT INTO speech_bubbles (conversation_id, content, role, name, metadata, function_call) SELECT id, :content, :role, CASE WHEN :name IS NOT NULL THEN :name END, CASE WHEN :metadata IS NOT NULL THEN :metadata END, CASE WHEN :function_call IS NOT NULL THEN :function_call END FROM conversations WHERE uuid = :uuid",
+                    "write": true,
+                    "on_success_message": "Speech bubble added",
+                    "on_error_message": "Adding speech bubble failed",
+                    "params": ["uuid", "content", "role", "name", "metadata", "function_call"]
+                },
+                "get_conversation_by_uuid": {
+                    "sql": "SELECT content, role, name, metadata, function_call FROM (SELECT content, role, name, metadata, function_call, created_at FROM speech_bubbles WHERE conversation_id = (SELECT id FROM conversations WHERE uuid = :uuid) ORDER BY created_at DESC LIMIT 20) ORDER BY created_at ASC",
+                    "params": ["uuid"]
+                },
+                "search_in_conversation": {
+                    "sql": "SELECT content, role, name, metadata, function_call, created_at FROM speech_bubbles WHERE conversation_id = (SELECT id FROM conversations WHERE uuid = :uuid) AND content LIKE '%' || :queryTags || '%' ORDER BY created_at DESC",
+                    "params": ["uuid", "queryTags"]
+                },
+                "get_all_conversations": {
+                    "sql": "SELECT uuid FROM conversations WHERE id IN (SELECT DISTINCT conversation_id FROM speech_bubbles)",
+                    "params": []
+                }
+            }
+        },
         "tasks": {
             "queries": {
                 "get_tasks_with_metadata": {

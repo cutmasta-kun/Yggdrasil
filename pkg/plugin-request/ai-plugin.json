@@ -1,0 +1,18 @@
+{
+    "schema_version": "v1",
+    "name_for_human": "Request Plugin",
+    "name_for_model": "make_request",
+    "description_for_human": "Plugin to make GET and POST requests to specified URLs and optional payload.",
+    "description_for_model": "This plugin allows you to make GET and POST requests to other URLs with given payload. Just instruct 'make request' with the desired URL and payload if provided.",
+    "auth": {
+      "type": "none"
+    },
+    "api": {
+      "type": "openapi",
+      "url": "http://localhost:5200/openapi.yaml",
+      "is_user_authenticated": false
+    },
+    "logo_url": "http://localhost:5200/logo.png",
+    "contact_email": "your-email@example.com",
+    "legal_info_url": "https://example.com/legal"
+}

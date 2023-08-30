@@ -1,33 +1,20 @@
 version: '3.9'
 
 services:
-  communication-hub:
+  plugin-manage-files:
     image: python:slim
-    container_name: communication-hub
+    container_name: plugin-manage-files
     working_dir: /app
     volumes:
-      - ./../pkg/communication-hub:/app
-    command: >
-      /bin/sh -c "pip install -r requirements.txt 
-      && python -u main.py"
-    cpu_shares: 256
-    healthcheck:
-      test: 
-        - CMD-SHELL
-        - pgrep -f 'main.py' || exit 1
-      interval: 2s
-      timeout: 2s
-      retries: 3
-
-  function-log-communication:
-    image: python:slim
-    container_name: function-log-communication
-    working_dir: /app
-    volumes:
-      - ./../pkg/function-log-communication:/app
+      - ./../pkg/plugin-manage-files:/app
     ports:
-      - "5000:5000"
-    command: /bin/sh -c "pip install -r requirements.txt && python -u main.py"
+      - "5101:5003"
+    command: >
+      /bin/sh -c "python -m venv venv 
+      && . venv/bin/activate 
+      && python --version
+      && pip install -r requirements.txt 
+      && python -u main.py"
     cpu_shares: 1024
     healthcheck:
       test: 
@@ -36,6 +23,9 @@ services:
       interval: 2s
       timeout: 2s
       retries: 3
+
+
+
 
   deamon-heimdall:
     build:
@@ -62,46 +52,7 @@ services:
       timeout: 2s
       retries: 3
 
-  plugin-memory-interface:
-    image: python:slim
-    container_name: plugin-memory-interface
-    volumes:
-      - ./../pkg/plugin-memory-interface:/app
-    working_dir: /app
-    ports:
-      - "5005:5005"
-    command: /bin/sh -c "pip install -r requirements.txt && python -u main.py"
-    depends_on:
-      - memory
-    environment:
-      MEMORY_HOST: 'http://memory:8001'
-    cpu_shares: 1024
-    healthcheck:
-      test: 
-        - CMD-SHELL
-        - pgrep -f 'main.py' || exit 1
-      interval: 2s
-      timeout: 2s
-      retries: 3
 
-  memory:
-    image: datasetteproject/datasette:0.64.3
-    container_name: memory
-    volumes:
-      - ./../pkg/memory/data:/data
-      - ./../pkg/memory:/app
-    working_dir: /app
-    ports:
-      - "5006:8001"
-    command: /bin/sh -c "pip install -r requirements.txt && python -u main.py"
-    cpu_shares: 1024
-    healthcheck:
-      test: 
-        - CMD-SHELL
-        - pgrep -f 'datasette' || exit 1
-      interval: 2s
-      timeout: 2s
-      retries: 3
 
 
   plugin-task-creator:
