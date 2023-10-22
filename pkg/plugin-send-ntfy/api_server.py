@@ -7,7 +7,16 @@ import os
 import requests
 import yaml
 
-app = FastAPI()
+app = FastAPI(
+    title="NTFY Plugin",
+    description="A plugin that allows the user to send notifications via NTFY using ChatGPT.",
+    version="1.0.0",
+    openapi_tags=[{
+        "name": "send",
+        "description": "Send a notification.",
+    }],
+    servers=[{"url": "http://localhost:5003", "description": "Local server"}],
+)
 
 # Enable CORS
 origins = ["*"]
@@ -24,35 +33,36 @@ app.add_middleware(
 NTFY_HOST = os.environ.get('NTFY_HOST', "https://ntfy.sh")
 TOPIC = os.environ.get('TOPIC', "mytopic")
 
-@app.get("/logo.png")
+@app.get("/logo.png", include_in_schema=False)
 def plugin_logo():
     filename = 'logo.png'
     return FileResponse(filename, media_type='image/png')
 
-@app.get("/.well-known/ai-plugin.json")
+@app.get("/.well-known/ai-plugin.json", include_in_schema=False)
 def plugin_manifest():
     with open("./ai-plugin.json") as f:
         text = f.read()
         return Response(content=text, media_type="application/json")
 
-@app.get("/openapi.yaml", include_in_schema=False) # `include_in_schema=False` for when the endpoint shouldn't be included in the docs
+@app.get("/openapi.yaml", include_in_schema=False)
 def get_openapi_yaml():
     openapi_schema = app.openapi()
 
-    order = ['openapi', 'info', 'paths', 'components'] # Hardcode order of openapi.yaml. Makes it more readable for humans
-    
+    # Konvertieren der 'AnyUrl'-Objekte in Strings
+    if "servers" in openapi_schema:
+        for server in openapi_schema["servers"]:
+            if hasattr(server["url"], "__str__"):  # Prüfen, ob das Objekt in einen String umgewandelt werden kann
+                server["url"] = server["url"].__str__()
+
+    order = ['openapi', 'info', 'servers', 'paths', 'components']
+
     yaml_output = ""
     for key in order:
-        section = {key: openapi_schema[key]}
-        yaml_output += yaml.dump(section)
-    
-    return Response(yaml_output, media_type="text/yaml")
+        if key in openapi_schema:
+            section = {key: openapi_schema[key]}
+            yaml_output += yaml.dump(section, sort_keys=False)  # sort_keys=False behält die Reihenfolge der Schlüssel bei
 
-@app.get("/old-openapi.yaml")
-def openapi_spec():
-    with open("openapi.yaml") as f:
-        text = f.read()
-        return Response(content=text, media_type="text/yaml")
+    return Response(yaml_output, media_type="text/yaml")
 
 from typing import Optional, List
 
@@ -60,7 +70,11 @@ class Message(BaseModel):
     message: str
     tags: Optional[str] = None
 
-@app.post("/send")
+@app.post(
+        "/send",
+        summary="Send a notification",
+        operation_id="send_ntfy",
+        )
 def send_notification(message: Message):
     # If tags are provided, send the message and tags as JSON
     if message.tags:
