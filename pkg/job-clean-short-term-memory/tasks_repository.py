@@ -1,6 +1,6 @@
 # tasks_repository.py
 #
-# version=1.1
+# version=1.2
 #
 ###
 import uuid
@@ -167,15 +167,16 @@ def get_tasks(host) -> Optional[List[Task]]:
                 # Prepare a list to hold Task objects
                 tasks = []
                 # Map the column names to their respective values in each row
-                for row in data["rows"]:
+                for task_data in data:
+
                     task_dict = {
-                        "queueID": row[0],
-                        "taskData": row[1],
-                        "status": row[2],
-                        "result": row[3],
-                        "systemMessage": row[4],
-                        # Add other fields if necessary
+                        "queueID": task_data.get('queueID'),
+                        "taskData": task_data.get('taskData'),
+                        "status": task_data.get('status'),
+                        "result": task_data.get('result'),
+                        "systemMessage": task_data.get('systemMessage')
                     }
+
                     # Create a Task object from the dictionary and append it to the list
                     tasks.append(Task(**task_dict))
                 
@@ -208,15 +209,15 @@ def get_tasks_with_metadata(host) -> Optional[List[Task]]:
         if response.status_code == 200:
             # Parse the JSON response
             data = response.json()
+
             # Check if any tasks were returned
-            if data and "rows" in data and len(data["rows"]) > 0:
+            if data:
                 # Prepare a list to hold Task objects
                 tasks = []
 
-                # Map the column names to their respective values in each row
-                for row in data["rows"]:
-                    # Attempt to deserialize the metadata field into a dictionary
-                    metadata_str = row[5] if len(row) > 5 else "{}"
+                for task_data in data:
+                    # Deserialize the metadata field into a dictionary
+                    metadata_str = task_data.get('metadata', "{}")
 
                     try:
                         metadata_dict = json.loads(metadata_str)
@@ -225,26 +226,27 @@ def get_tasks_with_metadata(host) -> Optional[List[Task]]:
                         metadata_dict = {}  # Use an empty dictionary if decoding fails
 
                     task_dict = {
-                        "queueID": row[0],
-                        "taskData": row[1],
-                        "status": row[2],
-                        "result": row[3],
-                        "systemMessage": row[4],
+                        "queueID": task_data.get('queueID'),
+                        "taskData": task_data.get('taskData'),
+                        "status": task_data.get('status'),
+                        "result": task_data.get('result'),
+                        "systemMessage": task_data.get('systemMessage'),
                         "metadata": metadata_dict
                     }
+
                     # Create a Task object from the dictionary and append it to the list
                     tasks.append(Task(**task_dict))
                 
                 return tasks
     except requests.exceptions.HTTPError as errh:
         # Log the error and return None
-        print(f"Http Error: {errh}")
+        logging.error(f"Http Error: {errh}")
     except requests.exceptions.ConnectionError as errc:
-        print(f"Error Connecting: {errc}")
+        logging.error(f"Error Connecting: {errc}")
     except requests.exceptions.Timeout as errt:
-        print(f"Timeout Error: {errt}")
+        logging.error(f"Timeout Error: {errt}")
     except requests.exceptions.RequestException as err:
-        print(f"Something went wrong: {err}")
+        logging.error(f"Something went wrong: {err}")
     # If the request was not successful or no tasks were returned, return None
     return None
 

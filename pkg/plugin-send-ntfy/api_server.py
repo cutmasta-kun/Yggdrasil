@@ -5,6 +5,7 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel
 import os
 import requests
+import yaml
 
 app = FastAPI()
 
@@ -34,7 +35,20 @@ def plugin_manifest():
         text = f.read()
         return Response(content=text, media_type="application/json")
 
-@app.get("/openapi.yaml")
+@app.get("/openapi.yaml", include_in_schema=False) # `include_in_schema=False` for when the endpoint shouldn't be included in the docs
+def get_openapi_yaml():
+    openapi_schema = app.openapi()
+
+    order = ['openapi', 'info', 'paths', 'components'] # Hardcode order of openapi.yaml. Makes it more readable for humans
+    
+    yaml_output = ""
+    for key in order:
+        section = {key: openapi_schema[key]}
+        yaml_output += yaml.dump(section)
+    
+    return Response(yaml_output, media_type="text/yaml")
+
+@app.get("/old-openapi.yaml")
 def openapi_spec():
     with open("openapi.yaml") as f:
         text = f.read()

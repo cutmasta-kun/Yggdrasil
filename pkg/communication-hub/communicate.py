@@ -6,29 +6,55 @@ from urllib3.util import Retry
 import json
 import multiprocessing
 import time
-import requests
 import logging
 
-# Configurate deamon
+# Configurate daemon
 logging.basicConfig(level=logging.INFO)
 
-def get_listen_topics_from_env():
-    listen_topics = {}
-    
-    listen_topics_str = os.getenv('LISTEN_TOPICS')
-    if listen_topics_str:
-        listen_topics_list = listen_topics_str.split(',')
+NTFY_HOST = os.environ.get('NTFY_HOST', "https://ntfy.sh")
 
-        for listen_topic_str in listen_topics_list:
-            topic, url = listen_topic_str.split(':', 1)  # split only at the first occurrence of ':'
-            listen_topics[topic] = url
-    
-    return listen_topics
+def create_session(max_retries=5):
+    s = requests.Session()
+    retry_strategy = Retry(
+        total=max_retries,
+        backoff_factor=0.1,
+        status_forcelist=[500, 502, 503, 504]
+    )
+    adapter = HTTPAdapter(max_retries=retry_strategy)
+    s.mount("http://", adapter)
+    s.mount("https://", adapter)
+    return s
+
+SESSION = create_session()
+
+def get_listen_topics_from_env():
+    listen_topics_json = os.getenv('LISTEN_TOPICS', '[]')  # Set default to an empty JSON array
+    logging.info(f"listen_topics_json: {listen_topics_json}")
+    try:
+        topics_list = json.loads(listen_topics_json)
+        listen_topics = {item['topic']: item['endpoint'] for item in topics_list}
+        return listen_topics
+    except json.JSONDecodeError:
+        logging.error("Error decoding the LISTEN_TOPICS JSON string.")
+        return {}
+
+def load_listen_topics(retries=10, delay=2):
+    for _ in range(retries):
+        listen_topics = get_listen_topics_from_env()
+        if listen_topics:
+            return listen_topics
+        logging.info('... Communication System booting...')
+        time.sleep(delay)
+    return {}
 
 def head_request(session, endpoint):
     return session.head(endpoint)
 
 def wait_for_function(endpoint, max_retries=5, delay=2, request_function=head_request):
+    if not endpoint:
+        logging.error("No endpoint provided!")
+        return False  # Guard condition
+    
     s = requests.Session()
     retry_strategy = Retry(
         total=max_retries,
@@ -51,29 +77,40 @@ def wait_for_function(endpoint, max_retries=5, delay=2, request_function=head_re
         time.sleep(delay)
     raise Exception(f"Could not connect to the function at {endpoint} after {max_retries} attempts")
 
-def subscribe_to_topic_and_forward_messages(topic, endpoint, get_request_function=requests.get, post_request_function=requests.post):
+def subscribe_to_topic_and_forward_messages(topic, endpoint, get_request_function=SESSION.get, post_request_function=SESSION.post):
+    if not topic or not endpoint:
+        logging.error("Either topic or endpoint is missing!")
+        return  # Guard condition
+    
     wait_for_function(endpoint)
     logging.debug(f"Subscribing to topic: {topic} and sending messages to endpoint: {endpoint}")
     
-    response = get_request_function(f"https://ntfy.sh/{topic}/json", stream=True)
+    try:
+        response = get_request_function(f"{NTFY_HOST}/{topic}/json", stream=True)
+        response.raise_for_status()
 
-    for line in response.iter_lines():
-        if line:
-            message = json.loads(line)
-            logging.debug(message)
-            post_request_function(endpoint, json=message)
+        for line in response.iter_lines():
+            if line:
+                try:
+                    message = json.loads(line)
+                except json.JSONDecodeError:
+                    logging.error(f"Failed to decode message: {line}")
+                    continue
+                logging.debug(message)
+                try:
+                    post_request_function(endpoint, json=message)
+                except requests.RequestException as err:
+                    logging.error(f"Failed to post message to {endpoint}: {err}")
+                    time.sleep(2)  # Add a delay in case of errors
+
+    except requests.RequestException as err:
+        logging.error(f"Failed to subscribe to topic {topic}: {err}")
+        time.sleep(2)
 
 def main():
     logging.info('Start Communication System... ')
 
-    listen_topics = {}
-    for _ in range(10):  # Versuche 10 mal, die Umgebungsvariablen zu bekommen
-        listen_topics = get_listen_topics_from_env()
-        if listen_topics:
-            break
-        else:
-            logging.info('... Communication System booting...')
-            time.sleep(2)
+    listen_topics = load_listen_topics()
 
     if not listen_topics:
         logging.error('... Communication System failed: No Topics to listen to')
@@ -88,9 +125,8 @@ def main():
     logging.info('... Communication System running')
 
     # Warte, bis alle run_ntfy-Aufrufe abgeschlossen sind
-    while True:
-        if all(not process.is_alive() for process in processes):
-            break
+    for process in processes:
+        process.join()
 
 if __name__ == "__main__":
     main()

@@ -1,0 +1,4 @@
+# Project Title
+Open Interpreter Demo
+## Description
+Open Interpreter is an open-source implementation of OpenAI's Code Interpreter that allows language models to run code locally on your computer. It provides a natural-language interface for various tasks such as editing media files, performing research, and analyzing datasets. Open Interpreter overcomes the limitations of OpenAI's hosted service by running on your local environment, giving it full access to the internet and the ability to utilize any package or library. It offers both interactive and programmatic chat options and allows customization of system messages. However, users should exercise caution as executing code in the local environment can have unexpected outcomes. Open Interpreter is licensed under the MIT License and is not affiliated with OpenAI.

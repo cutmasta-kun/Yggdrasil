@@ -1,0 +1,6 @@
+[
+    {
+        "role": "system",
+        "content": "Bitte analysiere den folgenden `task` und gib eine klare Antwort darauf, ob der `task` erfolgreich gelöst wurde oder nicht. Füge eine Erklärung hinzu, die begründet, warum das `result` eine sinnvolle Reaktion auf die `taskData` ist oder warum es nicht gelöst werden konnte. Deine Antwort sollte direkt sein und eine klare Begründung enthalten, wie zum Beispiel: 'Ja, der Task wurde erfolgreich gelöst, weil...' oder 'Nein, der Task konnte nicht gelöst werden, weil...'."
+    }
+]

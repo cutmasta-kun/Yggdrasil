@@ -1,0 +1,62 @@
+**1. Services:**
+
+The Yggdrasil system is composed of several services, each with its own specific function:
+
+- `function-chat`: This service handles chat functionalities.
+- `communication-hub`: This service acts as a central hub for communication between other services.
+- `plugin-send-ntfy`: This FastAPI application serves as an API for sending messages via a NTFY host.
+- `function-log-communication`: This service logs communication events.
+- `plugin-memory-interface`: This Flask application serves as an interface for the memory service.
+- `memory`: This service uses SQLite3 for database management and Datasette for data visualization.
+- `plugin-request`: This service handles requests.
+
+Each service has its own container, working directory, volumes, and commands.
+
+**2. Images:**
+
+All services use the `python:slim` image, except for the `memory` service, which uses the `datasetteproject/datasette:0.64.3` image.
+
+**3. Ports:**
+
+Each service has specific ports assigned:
+
+- `function-chat`: 5009
+- `plugin-send-ntfy`: 5003
+- `function-log-communication`: 5000
+- `plugin-memory-interface`: 5005
+- `memory`: 5006
+- `plugin-request`: 5200
+
+**4. Commands:**
+
+Each service runs a series of commands, including updating the system, installing `procps`, installing requirements from `requirements.txt`, and running `main.py`.
+
+**5. CPU Shares:**
+
+Each service has a specific number of CPU shares assigned. Most services have `1024` CPU shares, while `communication-hub` has `256` CPU shares.
+
+**6. Healthcheck:**
+
+Each service has a health check that tests if `main.py` (or `datasette` for the `memory` service) is running. If not, it exits with code `1`. The health check is performed every `2s`, with a timeout of `2s`, and a maximum of `3` retries.
+
+**7. Environment Variables:**
+
+Some services have environment variables defined. For example, `function-chat` and `plugin-memory-interface` have `MEMORY_HOST` set to `'http://memory:8001'`. `function-chat` also has `OPENAI_API_KEY`, `OPENAI_ORGANIZATION`, and `OPENAI_MODEL` defined, but with empty values. The `plugin-send-ntfy` service has `NTFY_HOST` and `TOPIC` defined, with default values of `"https://ntfy.sh"` and `"mytopic"` respectively.
+
+**8. Dependencies:**
+
+The `plugin-memory-interface` service depends on the `memory` service.
+
+**9. Memory Service Code:**
+
+The `memory` service runs a Python script that creates and manages SQLite databases. It checks if the databases exist, and if not, it creates them. It also executes SQL files on the databases. The databases include `knowledge.db`, `messages.db`, `tasks.db`, and `conversations.db`. The service then starts Datasette.
+
+**10. Plugin-Memory-Interface Code:**
+
+The `plugin-memory-interface` service runs a Flask application. It serves static files, handles GET requests, and interacts with the `memory` service. It extracts the `MEMORY_HOST` from the environment variables or uses a default value.
+
+**11. Plugin-Send-NTFY Code:**
+
+The `plugin-send-ntfy` service runs a FastAPI application. It serves static files, handles GET requests, and sends notifications to a NTFY host. It extracts the `NTFY_HOST` and `TOPIC` from the environment variables or uses default values. It also handles POST requests to send notifications with or without tags.
+
+This detailed description should provide a comprehensive understanding of the Yggdrasil system's Docker setup.

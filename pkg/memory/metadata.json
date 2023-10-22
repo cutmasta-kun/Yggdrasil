@@ -42,15 +42,15 @@
         "tasks": {
             "queries": {
                 "get_tasks_with_metadata": {
-                    "sql": "SELECT id, queueID, taskData, status, result, systemMessage, created_at, metadata FROM tasks ORDER BY created_at DESC",
+                    "sql": "SELECT queueID, taskData, status, result, systemMessage, metadata, created_at FROM tasks ORDER BY created_at DESC",
                     "title": "Get Tasks"
                 },
                 "get_tasks": {
-                    "sql": "SELECT id, queueID, taskData, status, result, systemMessage, created_at FROM tasks ORDER BY created_at DESC",
+                    "sql": "SELECT queueID, taskData, status, result, systemMessage, created_at FROM tasks ORDER BY created_at DESC",
                     "title": "Get Tasks"
                 },
                 "get_tasks_by_queueID": {
-                    "sql": "SELECT * FROM tasks WHERE queueID = :queueID",
+                    "sql": "SELECT queueID, taskData, status, result, systemMessage, metadata, created_at FROM tasks WHERE queueID = :queueID",
                     "title": "Get Tasks by queueID",
                     "params": ["queueID"]
                 },
@@ -73,13 +73,13 @@
                     "params": ["queueID", "taskData", "status", "result", "systemMessage"]
                 },
                 "update_task": {
-                    "sql": "UPDATE tasks SET status = :status, result = :result, systemMessage = :systemMessage WHERE queueID = :queueID",
+                    "sql": "UPDATE tasks SET status = :status, result = :result, systemMessage = :systemMessage, metadata = :metadata WHERE queueID = :queueID",
                     "write": true,
                     "on_success_message": "Task updated",
-                    "on_success_redirect": "/tasks/tasks.json",
+                    "on_success_redirect": "/tasks/get_tasks_by_queueID.json?queueID=",
                     "on_error_message": "Task update failed",
                     "on_error_redirect": "/tasks.json",
-                    "params": ["queueID", "status", "result", "systemMessage"]
+                    "params": ["queueID", "status", "result", "systemMessage", "metadata"]
                 }
             }
         },
@@ -122,6 +122,13 @@
                     "sql": "SELECT * FROM messages WHERE uuid = :uuid",
                     "title": "Get Memories by UUID",
                     "params": ["uuid"]
+                },
+                "delete_memory": {
+                    "sql": "DELETE FROM messages WHERE uuid IN (:uuid)",
+                    "write": true,
+                    "on_success_message": "Memory deleted",
+                    "on_error_message": "Memory deletion failed",
+                    "params": ["uuids"]
                 },
                 "add_memory": {
                     "sql": "INSERT INTO messages (uuid, message) VALUES (:uuid, :message)",

@@ -1,0 +1,28 @@
+<<<domain>>>: Multimodal Image-to-Text
+<<<api_call>>>: pipe = StableDiffusionPipeline.from_pretrained('stabilityai/stable-diffusion-2-1')
+<<<api_provider>>>: Hugging Face
+<<<explanation>>>:1. Import the StableDiffusionPipeline from the diffusers library.
+2. Load the pretrained stabilityai/stable-diffusion-2-1 model with the from_pretrained method.
+3. Create the image_to_text generator with the proper seed.
+4. Generate the image caption by calling the pipeline with the image and returning the generated text.
+<<<code>>>:
+
+from diffusers import DiffusionPipeline
+import torch
+
+def load_model():
+    model_id = 'stabilityai/stable-diffusion-2-1'
+    pipe = DiffusionPipeline.from_pretrained(model_id, torch_dtype=torch.float16)
+    return pipe
+
+def process_data(image_path, pipe):
+    with torch.inference_mode():
+        response = pipe(image_path)
+    return response
+
+image_path = 'image.png'
+# Load the model
+pipe = load_model()
+# Process the data
+response = process_data(image_path, pipe)
+print(response)

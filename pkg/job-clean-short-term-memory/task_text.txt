@@ -1,0 +1,7 @@
+The data provided below comprises a list of memories. Interspersed among these memories are test entries, which were generated to verify the functionality of saving new memories. These test entries are typically quite brief and do not contain substantial content. Your task is to identify these test entries so they can be flagged for future deletion. 
+
+Here are some examples of phrases that might indicate a test entry: "This is a test", "Just testing", "Does this work now".
+
+Please go through the list and identify entries that seem to match the criteria of a test entry, i.e., they are short, lack meaningful content, and are similar to the examples provided. For each entry you identify, please provide the corresponding UUID so they can be easily located and flagged for removal.
+
+<<TASKS>>

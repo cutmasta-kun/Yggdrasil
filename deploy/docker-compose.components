@@ -1,6 +1,97 @@
 version: '3.9'
 
 services:
+
+
+
+## -- COMMUNICATION SECTION -- ##
+  communication-hub:
+    image: python:slim
+    container_name: communication-hub
+    working_dir: /app
+    volumes:
+      - ./../pkg/communication-hub:/app
+    command: >
+      /bin/sh -c "apt-get update && apt-get install -y procps 
+      && pip install -r requirements.txt 
+      && python -u main.py"
+    cpu_shares: 256
+    healthcheck:
+      test: 
+        - CMD-SHELL
+        - pgrep -f 'main.py' || exit 1
+      interval: 2s
+      timeout: 2s
+      retries: 3
+
+  plugin-send-ntfy:
+    image: python:slim
+    container_name: plugin-send-ntfy
+    working_dir: /app
+    volumes:
+      - ./../pkg/plugin-send-ntfy:/app
+    ports:
+      - "5003:5003"
+    command: >
+      /bin/sh -c "apt-get update && apt-get install -y procps 
+      && pip install -r requirements.txt 
+      && python -u main.py"
+    cpu_shares: 1024
+    healthcheck:
+      test: 
+        - CMD-SHELL
+        - pgrep -f 'main.py' || exit 1
+      interval: 2s
+      timeout: 2s
+      retries: 3
+
+  function-log-communication:
+    image: python:slim
+    container_name: function-log-communication
+    working_dir: /app
+    volumes:
+      - ./../pkg/function-log-communication:/app
+    ports:
+      - "5000:5000"
+    command: >
+      /bin/sh -c "apt-get update && apt-get install -y procps 
+      && pip install -r requirements.txt 
+      && python -u main.py"
+    cpu_shares: 1024
+    healthcheck:
+      test: 
+        - CMD-SHELL
+        - pgrep -f 'main.py' || exit 1
+      interval: 2s
+      timeout: 2s
+      retries: 3
+
+  function-chat:
+    image: python:slim
+    container_name: function-chat
+    working_dir: /app
+    volumes:
+      - ./../pkg/function-chat:/app
+    environment:
+      MEMORY_HOST: 'http://memory:8001'
+      OPENAI_API_KEY: ''
+      OPENAI_ORGANIZATION: ''
+      OPENAI_MODEL: ''
+    ports:
+      - "5009:5009"
+    command: >
+      /bin/sh -c "apt-get update && apt-get install -y procps 
+      && pip install -r requirements.txt 
+      && python -u main.py"
+    cpu_shares: 1024
+    healthcheck:
+      test: 
+        - CMD-SHELL
+        - pgrep -f 'main.py' || exit 1
+      interval: 2s
+      timeout: 2s
+      retries: 3
+
   plugin-manage-files:
     image: python:slim
     container_name: plugin-manage-files
@@ -10,7 +101,8 @@ services:
     ports:
       - "5101:5003"
     command: >
-      /bin/sh -c "python -m venv venv 
+      /bin/sh -c "apt-get update && apt-get install -y procps
+      && python -m venv venv 
       && . venv/bin/activate 
       && python --version
       && pip install -r requirements.txt 
@@ -23,9 +115,6 @@ services:
       interval: 2s
       timeout: 2s
       retries: 3
-
-
-
 
   deamon-heimdall:
     build:
@@ -63,37 +152,14 @@ services:
     working_dir: /app
     ports:
       - "5010:5010"
-    command: /bin/sh -c "pip install -r requirements.txt && python -u main.py"
-    depends_on:
-      - memory
-    environment:
-      MEMORY_HOST: 'http://memory:8001'
-    cpu_shares: 1024
-    healthcheck:
-      test: 
-        - CMD-SHELL
-        - pgrep -f 'main.py' || exit 1
-      interval: 2s
-      timeout: 2s
-      retries: 3
-
-
-  function-clean-short-term-memory:
-    image: python:slim
-    container_name: function-clean-short-term-memory
-    volumes:
-      - ./../pkg/function-clean-short-term-memory:/app
-    working_dir: /app
-    ports:
-      - "5021:5021"
     command: >
-      /bin/sh -c "pip install -r requirements.txt 
+      /bin/sh -c "apt-get update && apt-get install -y procps 
+      && pip install -r requirements.txt 
       && python -u main.py"
     depends_on:
       - memory
     environment:
-      MEMORY_HOST: 'http://plugin-memory-interface:5005'
-      TASK_CREATOR_HOST: 'http://plugin-task-creator:5010'
+      MEMORY_HOST: 'http://memory:8001'
     cpu_shares: 1024
     healthcheck:
       test: 
@@ -112,7 +178,8 @@ services:
     ports:
       - "5022:5022"
     command: >
-      /bin/sh -c "pip install -r requirements.txt 
+      /bin/sh -c "apt-get update && apt-get install -y procps 
+      && pip install -r requirements.txt 
       && python -u main.py"
     depends_on:
       - memory
@@ -125,18 +192,19 @@ services:
       timeout: 2s
       retries: 3
 
-
-  deamon-clean-short-term-memory:
+## -- HELPER PLUGINS -- ##
+  plugin-request:
     image: python:slim
-    container_name: deamon-clean-short-term-memory
-    volumes:
-      - ./../pkg/deamon-clean-short-term-memory:/app
+    container_name: plugin-request
     working_dir: /app
+    volumes:
+      - ./../pkg/plugin-request:/app
+    ports:
+      - "5200:5200"
     command: >
-      /bin/sh -c "pip install -r requirements.txt 
+      /bin/sh -c "apt-get update && apt-get install -y procps 
+      && pip install -r requirements.txt 
       && python -u main.py"
-    depends_on:
-      - memory
     cpu_shares: 1024
     healthcheck:
       test: 
@@ -154,7 +222,10 @@ services:
       - ./../pkg/plugin-search-arxiv:/app
     ports:
       - "5004:5004"
-    command: /bin/sh -c "pip install -r requirements.txt && python -u main.py"
+    command: >
+      /bin/sh -c "apt-get update && apt-get install -y procps 
+      && pip install -r requirements.txt 
+      && python -u main.py"
     cpu_shares: 1024
     healthcheck:
       test: 

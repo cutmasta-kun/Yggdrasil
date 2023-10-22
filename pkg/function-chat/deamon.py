@@ -16,7 +16,7 @@ OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 OPENAI_ORGANIZATION = os.getenv('OPENAI_ORGANIZATION')
 OPENAI_MODEL = os.getenv('OPENAI_MODEL')
 
-functions = [
+unused_functions = [
     {
         "name": "log",
         "description": "Logs the summary of the conversation so far.",
@@ -30,7 +30,13 @@ functions = [
             },
             "required": ["summary"]
         }
-    },
+    }
+]
+
+def log_function(summary="", **kwargs):
+    return {"summary": summary}
+
+functions = [
     {
         "name": "extract_data",
         "description": "Extracts key-value pairs of information from a user message.",
@@ -46,22 +52,18 @@ functions = [
     }
 ]
 
-def log_function(summary="", **kwargs):
-    return {"summary": summary}
-
 def extract_data(**kwargs):
-    data_as_json = json.dumps(kwargs)
     logging.info(f"Identified keys: {kwargs}")
 
     return {"data": kwargs}
 
 function_callbacks = {
-    "log": log_function,
+    # "log": log_function,
     "extract_data": extract_data
 }
 
 function_messages = {
-    "log": [],
+    # "log": [],
     "extract_data": [
         {
             "content": "Please extract all available explicit and implicit key-value pairs from the following user input. If file contents are provided in recognizable formats like yaml, json, or similar code blocks, extract the entire content of the file as a single string. Use a combination of the primary subject or topic from the user's message and the file type to generate a dynamic key for the extracted content. For example, if the user mentions OpenAI and provides a yaml file, the key could be openai yaml. Always store file contents as strings, not parsed objects. Please use lowercase English definitions for the keys, but retain the exact same case for the values.",

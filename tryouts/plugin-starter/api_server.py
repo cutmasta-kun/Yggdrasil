@@ -6,7 +6,6 @@ from pydantic import BaseModel, Field
 import os
 import logging
 from typing import Optional
-from conversations_repository import create_conversation, SpeechBubble, add_speech_bubble, get_conversation_from_repo, search_in_conversation_from_repo
 from enum import Enum
 
 app = FastAPI(

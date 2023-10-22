@@ -1,9 +1,9 @@
 {
   "schema_version": "v1",
-  "name_for_human": "Queue System Plugin",
-  "name_for_model": "queue_system_plugin",
-  "description_for_human": "Plugin for interacting with a generic queue system for processing tasks.",
-  "description_for_model": "This plugin allows you to interact with a generic queue system. You can add tasks to the queue and retrieve the status and result of tasks based on their queue ID.",
+  "name_for_human": "Task Queue Manager",
+  "name_for_model": "task_queue_manager",
+  "description_for_human": "A sophisticated system for managing task queues. Enables adding, retrieving, and updating tasks efficiently.",
+  "description_for_model": "Interact with a robust queue system. Add tasks, retrieve status and results, and update tasks seamlessly.",
   "auth": {
     "type": "none"
   },

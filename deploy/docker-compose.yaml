@@ -2,79 +2,73 @@
 version: '3.9'
 
 services:
-  function-chat:
+  clean-short-term-memory:
     image: python:slim
-    container_name: function-chat
+    container_name: clean-short-term-memory
     working_dir: /app
     volumes:
-      - ./../pkg/function-chat:/app
+      - ./../pkg/job-clean-short-term-memory:/app
+    environment:
+      MEMORY_HOST: 'http://plugin-memory-interface:5005'
+      TASK_CREATOR_HOST: 'http://plugin-task-creator:5010'
+    ports:
+      - "5021:5021"
+    command: >
+      /bin/sh -c "apt-get update && apt-get install -y procps 
+      && pip install -r requirements.txt 
+      && python -u main.py"
+    cpu_shares: 1024
+    healthcheck:
+      test: 
+        - CMD-SHELL
+        - pgrep -f 'main.py' || exit 1
+      interval: 2s
+      timeout: 2s
+      retries: 3
+
+  plugin-task-creator:
+    image: python:slim
+    container_name: plugin-task-creator
+    volumes:
+      - ./../pkg/plugin-task-creator:/app
+    working_dir: /app
+    ports:
+      - "5010:5010"
+    command: >
+      /bin/sh -c "apt-get update && apt-get install -y procps 
+      && pip install -r requirements.txt 
+      && python -u main.py"
+    depends_on:
+      - memory
     environment:
       MEMORY_HOST: 'http://memory:8001'
+    cpu_shares: 1024
+    healthcheck:
+      test: 
+        - CMD-SHELL
+        - pgrep -f 'main.py' || exit 1
+      interval: 2s
+      timeout: 2s
+      retries: 3
+
+  function-ask-question:
+    image: python:slim
+    container_name: function-ask-question
+    volumes:
+      - ./../pkg/function-ask-question:/app
+    working_dir: /app
+    environment:
+      RETRIEVAL_API_URL_BASE: 'http://retrieval-app:8080'
       OPENAI_API_KEY: ''
-      OPENAI_ORGANIZATION: ''
-      OPENAI_MODEL: ''
+      AI_MODEL: 'gpt-4 or gpt-3.5-turbo'
     ports:
-      - "5009:5009"
+      - "5022:5022"
     command: >
-      /bin/sh -c "pip install -r requirements.txt 
+      /bin/sh -c "apt-get update && apt-get install -y procps 
+      && pip install -r requirements.txt 
       && python -u main.py"
-    cpu_shares: 1024
-    healthcheck:
-      test: 
-        - CMD-SHELL
-        - pgrep -f 'main.py' || exit 1
-      interval: 2s
-      timeout: 2s
-      retries: 3
-
-## -- COMMUNICATION SECTION -- ##
-  communication-hub:
-    image: python:slim
-    container_name: communication-hub
-    working_dir: /app
-    volumes:
-      - ./../pkg/communication-hub:/app
-    command: >
-      /bin/sh -c "pip install -r requirements.txt 
-      && python -u main.py"
-    cpu_shares: 256
-    healthcheck:
-      test: 
-        - CMD-SHELL
-        - pgrep -f 'main.py' || exit 1
-      interval: 2s
-      timeout: 2s
-      retries: 3
-
-  plugin-send-ntfy:
-    image: python:slim
-    container_name: plugin-send-ntfy
-    working_dir: /app
-    volumes:
-      - ./../pkg/plugin-send-ntfy:/app
-    ports:
-      - "5003:5003"
-    command: >
-      /bin/sh -c "pip install -r requirements.txt 
-      && python -u main.py"
-    cpu_shares: 1024
-    healthcheck:
-      test: 
-        - CMD-SHELL
-        - pgrep -f 'main.py' || exit 1
-      interval: 2s
-      timeout: 2s
-      retries: 3
-
-  function-log-communication:
-    image: python:slim
-    container_name: function-log-communication
-    working_dir: /app
-    volumes:
-      - ./../pkg/function-log-communication:/app
-    ports:
-      - "5000:5000"
-    command: /bin/sh -c "pip install -r requirements.txt && python -u main.py"
+    depends_on:
+      - memory
     cpu_shares: 1024
     healthcheck:
       test: 
@@ -93,7 +87,10 @@ services:
     working_dir: /app
     ports:
       - "5005:5005"
-    command: /bin/sh -c "pip install -r requirements.txt && python -u main.py"
+    command: >
+      /bin/sh -c "apt-get update && apt-get install -y procps 
+      && pip install -r requirements.txt 
+      && python -u main.py"
     depends_on:
       - memory
     environment:
@@ -116,7 +113,10 @@ services:
     working_dir: /app
     ports:
       - "5006:8001"
-    command: /bin/sh -c "pip install -r requirements.txt && python -u main.py"
+    command: >
+      /bin/sh -c "apt-get update && apt-get install -y procps 
+      && pip install -r requirements.txt 
+      && python -u main.py"
     cpu_shares: 1024
     healthcheck:
       test: 
@@ -126,18 +126,18 @@ services:
       timeout: 2s
       retries: 3
 
-## -- HELPER PLUGINS -- ##
-      
-  plugin-request:
+## -- COMMUNICATION SECTION -- ##
+  plugin-send-ntfy:
     image: python:slim
-    container_name: plugin-request
+    container_name: plugin-send-ntfy
     working_dir: /app
     volumes:
-      - ./../pkg/plugin-request:/app
+      - ./../pkg/plugin-send-ntfy:/app
     ports:
-      - "5200:5200"
+      - "5003:5003"
     command: >
-      /bin/sh -c "pip install -r requirements.txt 
+      /bin/sh -c "apt-get update && apt-get install -y procps 
+      && pip install -r requirements.txt 
       && python -u main.py"
     cpu_shares: 1024
     healthcheck:
@@ -147,3 +147,10 @@ services:
       interval: 2s
       timeout: 2s
       retries: 3
+
+## -- HELPER PLUGINS -- ##
+
+
+networks:
+  default:
+    name: Yggdrasil
