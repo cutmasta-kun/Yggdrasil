@@ -1,0 +1,6 @@
+[
+    {
+        "role": "system",
+        "content": "Bitte lies die übergebene `system_message` sorgfältig durch, die eine Beschreibung des aktuellen Status des Tasks enthält. Deine Aufgabe ist es, den Status des Tasks zu bestimmen. Die Antwort darf nur ein Wort sein und muss eines der folgenden sein: 'in-progress', 'failed', 'done'. Analysiere die Informationen in der `system_message` und gib den entsprechenden Status zurück. Bitte beachte, dass 'in-progress' bedeutet, dass der Task noch bearbeitet wird, 'failed' bedeutet, dass der Task nicht erfolgreich abgeschlossen werden konnte, und 'done' bedeutet, dass der Task erfolgreich abgeschlossen wurde."
+    }
+]

@@ -1,8 +1,140 @@
 version: '3.9'
 
 services:
+## -- COMMUNICATION SECTION -- ##
+  communication-hub:
+    image: python:slim
+    container_name: communication-hub
+    working_dir: /app
+    volumes:
+      - ./../pkg/communication-hub:/app
+    command: >
+      /bin/sh -c "apt-get update && apt-get install -y procps 
+      && pip install -r requirements.txt 
+      && python -u main.py"
+    cpu_shares: 256
+    healthcheck:
+      test: 
+        - CMD-SHELL
+        - pgrep -f 'main.py' || exit 1
+      interval: 2s
+      timeout: 2s
+      retries: 3
 
+  function-log-communication:
+    image: python:slim
+    container_name: function-log-communication
+    working_dir: /app
+    volumes:
+      - ./../pkg/function-log-communication:/app
+    ports:
+      - "5000:5000"
+    command: >
+      /bin/sh -c "apt-get update && apt-get install -y procps 
+      && pip install -r requirements.txt 
+      && python -u main.py"
+    cpu_shares: 1024
+    healthcheck:
+      test: 
+        - CMD-SHELL
+        - pgrep -f 'main.py' || exit 1
+      interval: 2s
+      timeout: 2s
+      retries: 3
 
+  south-bus:
+    image: python:slim
+    container_name: south-bus
+    working_dir: /app
+    volumes:
+      - ./../pkg/plugin-send-ntfy:/app
+    ports:
+      - "5050:5050"
+    environment:
+      PORT: 5050
+    command: >
+      /bin/sh -c "apt-get update && apt-get install -y procps 
+      && pip install -r requirements.txt 
+      && python -u main.py"
+    cpu_shares: 1024
+    healthcheck:
+      test: 
+        - CMD-SHELL
+        - pgrep -f 'main.py' || exit 1
+      interval: 2s
+      timeout: 2s
+      retries: 3
+
+  plugin-send-ntfy:
+    image: python:slim
+    container_name: plugin-send-ntfy
+    working_dir: /app
+    volumes:
+      - ./../pkg/plugin-send-ntfy:/app
+    ports:
+      - "5003:5003"
+    command: >
+      /bin/sh -c "apt-get update && apt-get install -y procps 
+      && pip install -r requirements.txt 
+      && python -u main.py"
+    cpu_shares: 1024
+    healthcheck:
+      test: 
+        - CMD-SHELL
+        - pgrep -f 'main.py' || exit 1
+      interval: 2s
+      timeout: 2s
+      retries: 3
+
+## -- JOBS -- ##
+  plugin-task-creator:
+    image: python:slim
+    container_name: plugin-task-creator
+    volumes:
+      - ./../pkg/plugin-task-creator:/app
+    working_dir: /app
+    ports:
+      - "5010:5010"
+    command: >
+      /bin/sh -c "apt-get update && apt-get install -y procps 
+      && pip install -r requirements.txt 
+      && python -u main.py"
+    depends_on:
+      - memory
+    environment:
+      MEMORY_HOST: 'http://memory:8001'
+    cpu_shares: 1024
+    healthcheck:
+      test: 
+        - CMD-SHELL
+        - pgrep -f 'main.py' || exit 1
+      interval: 2s
+      timeout: 2s
+      retries: 3
+      
+  clean-short-term-memory:
+    image: python:slim
+    container_name: clean-short-term-memory
+    working_dir: /app
+    volumes:
+      - ./../pkg/job-clean-short-term-memory:/app
+    environment:
+      MEMORY_HOST: 'http://plugin-memory-interface:5005'
+      TASK_CREATOR_HOST: 'http://plugin-task-creator:5010'
+    ports:
+      - "5021:5021"
+    command: >
+      /bin/sh -c "apt-get update && apt-get install -y procps 
+      && pip install -r requirements.txt 
+      && python -u main.py"
+    cpu_shares: 1024
+    healthcheck:
+      test: 
+        - CMD-SHELL
+        - pgrep -f 'main.py' || exit 1
+      interval: 2s
+      timeout: 2s
+      retries: 3
 
 ## -- COMMUNICATION SECTION -- ##
   communication-hub:
@@ -92,83 +224,6 @@ services:
       timeout: 2s
       retries: 3
 
-  plugin-manage-files:
-    image: python:slim
-    container_name: plugin-manage-files
-    working_dir: /app
-    volumes:
-      - ./../pkg/plugin-manage-files:/app
-    ports:
-      - "5101:5003"
-    command: >
-      /bin/sh -c "apt-get update && apt-get install -y procps
-      && python -m venv venv 
-      && . venv/bin/activate 
-      && python --version
-      && pip install -r requirements.txt 
-      && python -u main.py"
-    cpu_shares: 1024
-    healthcheck:
-      test: 
-        - CMD-SHELL
-        - pgrep -f 'main.py' || exit 1
-      interval: 2s
-      timeout: 2s
-      retries: 3
-
-  deamon-heimdall:
-    build:
-      context: ./../pkg/deamon-heimdall
-      dockerfile: ./Dockerfile
-    image: deamon-heimdall-image
-    container_name: deamon-heimdall
-    volumes:
-      - ./../pkg/deamon-heimdall:/app
-    working_dir: /app
-    command: >
-      /bin/sh -c "modprobe v4l2loopback devices=1
-      && ffmpeg -i rtsp://192.168.178.21:8080/h264.sdp -fflags nobuffer -pix_fmt yuv420p -f v4l2 /dev/video0
-      && pip install -r requirements.txt 
-      && python -u main.py"
-    environment:
-      - VIDEO_STREAM_URL=http://192.168.178.21:8080/video
-    cpu_shares: 1024
-    healthcheck:
-      test: 
-        - CMD-SHELL
-        - pgrep -f 'main.py' || exit 1
-      interval: 2s
-      timeout: 2s
-      retries: 3
-
-
-
-
-  plugin-task-creator:
-    image: python:slim
-    container_name: plugin-task-creator
-    volumes:
-      - ./../pkg/plugin-task-creator:/app
-    working_dir: /app
-    ports:
-      - "5010:5010"
-    command: >
-      /bin/sh -c "apt-get update && apt-get install -y procps 
-      && pip install -r requirements.txt 
-      && python -u main.py"
-    depends_on:
-      - memory
-    environment:
-      MEMORY_HOST: 'http://memory:8001'
-    cpu_shares: 1024
-    healthcheck:
-      test: 
-        - CMD-SHELL
-        - pgrep -f 'main.py' || exit 1
-      interval: 2s
-      timeout: 2s
-      retries: 3
-
   function-ask-question:
     image: python:slim
     container_name: function-ask-question
@@ -193,6 +248,31 @@ services:
       retries: 3
 
 ## -- HELPER PLUGINS -- ##
+
+  plugin-manage-files:
+    image: python:slim
+    container_name: plugin-manage-files
+    working_dir: /app
+    volumes:
+      - ./../pkg/plugin-manage-files:/app
+    ports:
+      - "5101:5003"
+    command: >
+      /bin/sh -c "apt-get update && apt-get install -y procps
+      && python -m venv venv 
+      && . venv/bin/activate 
+      && python --version
+      && pip install -r requirements.txt 
+      && python -u main.py"
+    cpu_shares: 1024
+    healthcheck:
+      test: 
+        - CMD-SHELL
+        - pgrep -f 'main.py' || exit 1
+      interval: 2s
+      timeout: 2s
+      retries: 3
+
   plugin-request:
     image: python:slim
     container_name: plugin-request

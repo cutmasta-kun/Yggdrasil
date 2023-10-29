@@ -30,7 +30,7 @@ class TaskData(BaseModel):
     taskData: str
     metadata: Optional[dict] = None
 
-MEMORY_HOST = os.getenv('MEMORY_HOST', 'http://memory:8001')
+MEMORY_HOST = os.getenv('MEMORY_HOST', 'http://plugin-memory-interface:5005')
 
 @app.get("/logo.png", include_in_schema=False)
 async def plugin_logo():

@@ -58,7 +58,7 @@
                     "sql": "INSERT INTO tasks (queueID, taskData, status, result, systemMessage, metadata) VALUES (:queueID, :taskData, :status, :result, :systemMessage, :metadata)",
                     "write": true,
                     "on_success_message": "Task inserted",
-                    "on_success_redirect": "/tasks/tasks.json",
+                    "on_success_redirect": "/tasks/get_tasks_by_queueID.json?queueID=",
                     "on_error_message": "Task insert failed",
                     "on_error_redirect": "/tasks.json",
                     "params": ["queueID", "taskData", "status", "result", "systemMessage", "metadata"]
@@ -67,7 +67,7 @@
                     "sql": "INSERT INTO tasks (queueID, taskData, status, result, systemMessage) VALUES (:queueID, :taskData, :status, :result, :systemMessage)",
                     "write": true,
                     "on_success_message": "Task inserted",
-                    "on_success_redirect": "/tasks/tasks.json",
+                    "on_success_redirect": "/tasks/get_tasks_by_queueID.json?queueID=",
                     "on_error_message": "Task insert failed",
                     "on_error_redirect": "/tasks.json",
                     "params": ["queueID", "taskData", "status", "result", "systemMessage"]
@@ -109,33 +109,34 @@
                     "on_error_redirect": "/messages.json"
                 },
 
-                "get_memories": {
+                "get_memory": {
                     "sql": "SELECT substr(message, 1, 100) || CASE WHEN length(message) > 100 THEN '...' ELSE '' END as message, uuid FROM messages ORDER BY created_at DESC",
                     "title": "Get Memories"
                 },
-                "get_memories_with_limit": {
+                "get_memory_with_limit": {
                     "sql": "SELECT substr(message, 1, 100) || CASE WHEN length(message) > 100 THEN '...' ELSE '' END as message, uuid FROM messages ORDER BY created_at DESC LIMIT :limit",
                     "title": "Get Memories with Limit",
                     "params": ["limit"]
                 },
-                "get_memories_by_uuid": {
+                "get_memory_by_uuid": {
                     "sql": "SELECT * FROM messages WHERE uuid = :uuid",
                     "title": "Get Memories by UUID",
                     "params": ["uuid"]
                 },
-                "delete_memory": {
-                    "sql": "DELETE FROM messages WHERE uuid IN (:uuid)",
+                "delete_memory_by_uuid": {
+                    "sql": "DELETE FROM messages WHERE uuid = :uuid",
                     "write": true,
                     "on_success_message": "Memory deleted",
                     "on_error_message": "Memory deletion failed",
-                    "params": ["uuids"]
+                    "params": ["uuid"]
                 },
                 "add_memory": {
                     "sql": "INSERT INTO messages (uuid, message) VALUES (:uuid, :message)",
                     "title": "Insert Memory",
                     "write": true,
+                    "params": ["uuid", "message"],
                     "on_success_message": "Memory inserted",
-                    "on_success_redirect": "/messages/get_memories.json?uuid=",
+                    "on_success_redirect": "/messages/get_memory.json?uuid=",
                     "on_error_message": "Message insert failed",
                     "on_error_redirect": "/messages.json"
                 }

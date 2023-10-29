@@ -60,7 +60,7 @@ def add_task(host: str, task: Task) -> Optional[str]:
 
     return None
 
-def add_task_with_metadata(host, task):
+def add_task_with_metadata(host, task: Task):
     """
     Create a new task with metadata into the tasks table
     :param host: The host URL of the Datasette instance
@@ -83,11 +83,15 @@ def add_task_with_metadata(host, task):
     if data.get('metadata') is not None:
         data['metadata'] = json.dumps(data['metadata'])
 
-    logging.debug(data)
+    logging.debug(f"data in add_task_with_metadata: {data}")
 
     try:
         response = requests.post(url, headers=headers, data=json.dumps(data))
+        
         response.raise_for_status()  # Will raise an HTTPError if the HTTP request returned an unsuccessful status code
+        
+        logging.debug(f"response from task creation: {response.json()}")
+        
         return task.queueID
     except requests.exceptions.RequestException as e:
         print(f"An error occurred: {e}")

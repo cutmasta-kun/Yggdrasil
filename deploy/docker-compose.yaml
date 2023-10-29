@@ -25,7 +25,7 @@ services:
       interval: 2s
       timeout: 2s
       retries: 3
-
+      
   plugin-task-creator:
     image: python:slim
     container_name: plugin-task-creator
@@ -41,7 +41,34 @@ services:
     depends_on:
       - memory
     environment:
-      MEMORY_HOST: 'http://memory:8001'
+      MEMORY_HOST: 'http://plugin-memory-interface:5005'
+    cpu_shares: 1024
+    healthcheck:
+      test: 
+        - CMD-SHELL
+        - pgrep -f 'main.py' || exit 1
+      interval: 2s
+      timeout: 2s
+      retries: 3
+
+  function-ask-with-memory:
+    image: python:slim
+    container_name: function-ask-with-memory
+    volumes:
+      - ./../pkg/function-ask-with-memory:/app
+    working_dir: /app
+    environment:
+      RETRIEVAL_API_URL_BASE: 'http://retrieval-app:8080'
+      OPENAI_API_KEY: ''
+      AI_MODEL: 'gpt-4 or gpt-3.5-turbo'
+    ports:
+      - "5023:5022"
+    command: >
+      /bin/sh -c "apt-get update && apt-get install -y procps 
+      && pip install -r requirements.txt 
+      && python -u main.py"
+    depends_on:
+      - memory
     cpu_shares: 1024
     healthcheck:
       test: 
@@ -58,7 +85,6 @@ services:
       - ./../pkg/function-ask-question:/app
     working_dir: /app
     environment:
-      RETRIEVAL_API_URL_BASE: 'http://retrieval-app:8080'
       OPENAI_API_KEY: ''
       AI_MODEL: 'gpt-4 or gpt-3.5-turbo'
     ports:
@@ -94,7 +120,7 @@ services:
     depends_on:
       - memory
     environment:
-      MEMORY_HOST: 'http://memory:8001'
+      MEMORY_HOST: 'http://memory:5006'
     cpu_shares: 1024
     healthcheck:
       test: 
@@ -112,7 +138,7 @@ services:
       - ./../pkg/memory:/app
     working_dir: /app
     ports:
-      - "5006:8001"
+      - "5006:5006"
     command: >
       /bin/sh -c "apt-get update && apt-get install -y procps 
       && pip install -r requirements.txt 
@@ -126,29 +152,6 @@ services:
       timeout: 2s
       retries: 3
 
-## -- COMMUNICATION SECTION -- ##
-  plugin-send-ntfy:
-    image: python:slim
-    container_name: plugin-send-ntfy
-    working_dir: /app
-    volumes:
-      - ./../pkg/plugin-send-ntfy:/app
-    ports:
-      - "5003:5003"
-    command: >
-      /bin/sh -c "apt-get update && apt-get install -y procps 
-      && pip install -r requirements.txt 
-      && python -u main.py"
-    cpu_shares: 1024
-    healthcheck:
-      test: 
-        - CMD-SHELL
-        - pgrep -f 'main.py' || exit 1
-      interval: 2s
-      timeout: 2s
-      retries: 3
-
-## -- HELPER PLUGINS -- ##
 
 
 networks:

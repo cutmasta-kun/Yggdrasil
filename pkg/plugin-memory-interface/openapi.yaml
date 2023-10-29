@@ -100,29 +100,28 @@ paths:
                     type: string
                     description: "Path to the newly created resource. The UUID is generated during the creation of the resource."
                     example: "/get_memory_by_uuid.json?uuid=9a2b9ea8-6198-4695-806a-814099b6cc2d"
-  /messages/get_memories.json:
+  /messages/get_memory.json:
     get:
-      operationId: getShortTermMemoryMemories
+      operationId: getShortTermMemory
       tags:
         - ShortTermMemory
-      summary: Retrieve memory previews
-      description: Retrieves previews of all memories. Each preview is the first 50 characters of the memory. You can either limit the number of memories returned or retrieve a specific memory by its UUID, but not both at the same time.
+      summary: Retrieve memory or memories
+      description: Retrieve a specific memory by its UUID or all memories if no UUID is provided. If no UUID is provided, you can limit the number of memories returned.
       parameters:
+        - name: uuid
+          in: query
+          description: The UUID of the memory to retrieve. If not provided, all memories are returned.
+          required: false
+          schema:
+            type: string
+            nullable: true
         - name: limit
           in: query
-          description: Limit the number of memories returned. This parameter cannot be used with the 'uuid' parameter.
+          description: Limit the number of memories returned. Ignored if UUID is provided.
           required: false
           schema:
             type: integer
             default: 10
-            nullable: true
-        - name: uuid
-          in: query
-          description: Retrieve a specific memory by its UUID. This parameter cannot be used with the 'limit' parameter.
-          required: false
-          schema:
-            type: string
-            default: 1329f4eb-13ab-4c52-b12d-ae1d0d92111e
             nullable: true
       responses:
         '200':

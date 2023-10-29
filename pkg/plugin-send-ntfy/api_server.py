@@ -7,15 +7,20 @@ import os
 import requests
 import yaml
 
+# Define constants
+NTFY_HOST = os.environ.get('NTFY_HOST', "https://ntfy.sh")
+TOPIC = os.environ.get('TOPIC', "mytopic")
+PORT = int(os.environ.get('PORT', 5003))
+
 app = FastAPI(
     title="NTFY Plugin",
     description="A plugin that allows the user to send notifications via NTFY using ChatGPT.",
     version="1.0.0",
     openapi_tags=[{
-        "name": "send",
+        "name": "send_ntfy",
         "description": "Send a notification.",
     }],
-    servers=[{"url": "http://localhost:5003", "description": "Local server"}],
+    servers=[{"url": f"http://localhost:{PORT}", "description": "Local server"}],
 )
 
 # Enable CORS
@@ -28,10 +33,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# Define constants
-NTFY_HOST = os.environ.get('NTFY_HOST', "https://ntfy.sh")
-TOPIC = os.environ.get('TOPIC', "mytopic")
 
 @app.get("/logo.png", include_in_schema=False)
 def plugin_logo():
@@ -74,6 +75,7 @@ class Message(BaseModel):
         "/send",
         summary="Send a notification",
         operation_id="send_ntfy",
+        tags=["send_ntfy"]
         )
 def send_notification(message: Message):
     # If tags are provided, send the message and tags as JSON
@@ -94,4 +96,5 @@ def send_notification(message: Message):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=5003)
+    PORT = int(PORT)
+    uvicorn.run(app, host="0.0.0.0", port=PORT)

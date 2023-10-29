@@ -2,12 +2,20 @@
 from fastapi import FastAPI, Request, Response, HTTPException
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-
+import yaml
 import os
-from post_flask_actions import post_action
-from get_flask_actions import get_action
+from memory_client import MemoryClient
 
-app = FastAPI()
+# Extrahieren Sie den MEMORY_HOST aus den Umgebungsvariablen oder verwenden Sie den Standardwert
+MEMORY_HOST = os.getenv('MEMORY_HOST', 'http://memory:5006')
+PORT = os.getenv('PORT', 5005)
+memory_client = MemoryClient(MEMORY_HOST)
+
+app = FastAPI(
+    title="Plugin Memory Interface",
+    version="1.0.0",
+    servers=[{"url": f"http://localhost:{PORT}", "description": "Local server"}],
+)
 
 # Enable CORS
 origins = ["*"]
@@ -19,42 +27,58 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Extrahieren Sie den MEMORY_HOST aus den Umgebungsvariablen oder verwenden Sie den Standardwert
-MEMORY_HOST = os.getenv('MEMORY_HOST', 'http://memory:8001')
+@app.options("/openapi.yaml")
+def options_openapi():
+    return Response(status_code=200)
+
+@app.options("/.well-known/ai-plugin.json")
+def options_plugin_manifest():
+    return Response(status_code=200)
 
 @app.get("/logo.png")
 def plugin_logo():
     filename = 'logo.png'
     return FileResponse(filename, media_type='image/png')
 
-@app.get("/.well-known/ai-plugin.json")
-def plugin_manifest():
-    with open("./ai-plugin.json") as f:
-        text = f.read()
-        return JSONResponse(content=text)
+@app.get("/.well-known/ai-plugin.json", include_in_schema=False)
+async def plugin_manifest(request: Request):
+    host = request.client.host
+    return Response(content=open("./ai-plugin.json", "r").read(), media_type="application/json")
 
-@app.get("/openapi.yaml")
-def openapi_spec():
+@app.get("/openapi.yaml", include_in_schema=False)
+def get_openapi_yaml():
     with open("openapi.yaml") as f:
         text = f.read()
-        return Response(content=text, media_type="text/yaml")
+        return Response(text, media_type="text/yaml")
+
+IGNORED_PATHS = ["favicon.ico"]
 
 @app.get("/{path:path}")
 async def catch_all_get(path: str, request: Request):
+    if path in IGNORED_PATHS:
+        return Response(status_code=204)  # No Content
     if not path.endswith('.json'):
         path += '.json'
 
-    response_content, status_code, headers = await get_action(request, path, MEMORY_HOST)
+    response_content, status_code, headers = await memory_client.get_action(request, path)
     return JSONResponse(content=response_content, status_code=status_code, headers=headers)
 
 @app.post("/{path:path}")
-def catch_all_post(path: str, request: Request):
+async def catch_all_post(path: str, request: Request):
     if not path.endswith('.json'):
         path += '.json'
 
-    response_content, status_code, headers = post_action(request, path, MEMORY_HOST)
+    response_content, status_code, headers = await memory_client.post_action(request, path)
+    return JSONResponse(content=response_content, status_code=status_code, headers=headers)
+
+@app.delete('/{path:path}')
+async def catch_all_delete(path: str, request: Request):
+    if not path.endswith('.json'):
+        path += '.json'
+
+    response_content, status_code, headers = await memory_client.delete_action(request, path)
     return JSONResponse(content=response_content, status_code=status_code, headers=headers)
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=5005)
+    uvicorn.run(app, host="0.0.0.0", port=PORT)

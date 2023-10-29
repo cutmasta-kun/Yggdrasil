@@ -1,7 +1,8 @@
 # fastapi_server.py
-from fastapi import FastAPI, Request, Response, HTTPException
+from fastapi import FastAPI, Request, Response, HTTPException, BackgroundTasks
 from fastapi.responses import PlainTextResponse
 from fastapi.middleware.cors import CORSMiddleware
+from deamon_determine_test_memories import check_tasks
 import requests
 import json
 import logging
@@ -11,6 +12,9 @@ import yaml
 # Konfigurieren der Anwendung
 logging.basicConfig(level=logging.WARNING)
 app = FastAPI()
+
+def run_check_tasks():
+    check_tasks()
 
 # CORS aktivieren
 origins = [
@@ -44,8 +48,10 @@ def get_openapi_yaml():
     
     return Response(yaml_output, media_type="text/yaml")
 
+from tasks_repository import Task, add_task_with_metadata
+
 @app.post('/create_task_clean')
-async def create_task_clean():
+async def create_task_clean(background_tasks: BackgroundTasks):
     try:
         url = f"{MEMORY_HOST}/{GET_MEMORY_PATH}"
         data = requests.get(url).json()
@@ -65,25 +71,31 @@ async def create_task_clean():
 
     # Ersetze den Platzhalter durch die tatsächlichen Daten
     task_data = task_text.replace('<<TASKS>>', tasks_str)
-
-    # Erstelle die URL und die Anforderungsdaten für den Task Creator
-    task_creator_url = f"{TASK_CREATOR_HOST}/{TASK_CREATOR_PATH}"
-    task_creator_data = {
-        "taskData": task_data,
-        "metadata": {
+    
+    # Erstelle eine neue Task-Instanz
+    new_task = Task(
+        taskData=task_data,
+        status='queued',
+        result=None,
+        systemMessage=None,
+        metadata={
             "task-type": "clean-short-memory"
-            }
         }
+    )
 
-    try:
-        # Füge den Task zur Warteschlange hinzu
-        response = requests.post(task_creator_url, json=task_creator_data)
-        response.raise_for_status()
-    except Exception as e:
-        logging.error(f"Failed to queue task: {e}")
+    logging.debug(f"new_task: {new_task}")
+
+    # Versuche, den Task zur Warteschlange hinzuzufügen
+    queueID = add_task_with_metadata(MEMORY_HOST, new_task)
+
+    if queueID is None:
         raise HTTPException(status_code=500, detail="Failed to queue task")
 
-    return {"detail": "Task successfully queued"}
+    # Füge run_check_tasks als Hintergrund-Task hinzu
+    background_tasks.add_task(run_check_tasks)
+
+    # Rückgabe einer Erfolgsmeldung
+    return {"detail": "Task successfully queued. Starting job.", "queueID": queueID}
 
 @app.get('/get_task_text')
 async def get_task_text():

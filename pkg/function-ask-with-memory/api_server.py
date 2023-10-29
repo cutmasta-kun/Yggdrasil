@@ -2,7 +2,6 @@ from fastapi import FastAPI, Request, HTTPException, Response
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from ask import validate_messages, send_request
-from agents.compress_decompress import compress, decompress
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 import requests
@@ -56,7 +55,12 @@ async def ask(ask_request: AskRequest):
     if not validate_messages(messages):
         raise HTTPException(status_code=400, detail={'error': 'Invalid messages'})
 
-    response, error, status_code = send_request(messages)
+    headers = {
+        'Content-Type': 'application/json',
+        'Authorization': f'Bearer {OPENAI_API_KEY}'
+    }
+
+    response, error, status_code = send_request(messages, headers, AI_MODEL)
 
     if error:
         raise HTTPException(status_code=status_code, detail={'error': error})
