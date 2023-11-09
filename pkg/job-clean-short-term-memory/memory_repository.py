@@ -14,15 +14,10 @@ def delete_memory_by_uuid(host, uuid):
         "uuid": uuid 
     }
 
-    logging.info(f"url: {url}")
-    logging.info(f"data: {data}")
-
     try:
         response = requests.delete(url, headers=headers, data=json.dumps(data))
         response.raise_for_status()
         response_json = response.json()
-
-        logging.info(f"response_json in memory_repo: {response_json}")
 
         message = response_json.get("message", "Unknown response")
         return True, f"{message}. UUID: {uuid}"

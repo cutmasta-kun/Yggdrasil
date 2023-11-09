@@ -6,5 +6,7 @@ CREATE TABLE IF NOT EXISTS tasks (
     result TEXT,
     systemMessage TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    metadata TEXT DEFAULT '{}'
+    metadata TEXT DEFAULT '{}',
+    parent TEXT,
+    children TEXT DEFAULT '[]'
 );

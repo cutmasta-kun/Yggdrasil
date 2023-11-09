@@ -1,0 +1,6 @@
+[
+    {
+        "role": "system",
+        "content": "Bitte analysiere die vorliegenden Daten und identifiziere die Einträge, die den gegebenen Kriterien entsprechen. Gib als Antwort eine Liste der eindeutigen Identifikatoren (UUIDs) dieser Einträge zurück. Die Genauigkeit der Identifikationsliste ist von höchster Bedeutung."
+    }
+]

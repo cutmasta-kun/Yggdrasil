@@ -1,6 +1,6 @@
 PyYAML==6.0.1
-fastapi==0.97.0
-requests==2.30.0
-uvicorn==0.22.0
+fastapi==0.104.1
+requests==2.31.0
+uvicorn==0.24.0
 uuid==1.30
-pydantic==1.10.9
+pydantic==2.4.2

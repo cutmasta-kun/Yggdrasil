@@ -1,0 +1,18 @@
+{
+  "schema_version": "v1",
+  "name_for_human": "Short Term Memory Plugin",
+  "name_for_model": "short_term_memory_plugin",
+  "description_for_human": "Plugin for interacting with short term memory services, providing interfaces for temporary data storage and retrieval.",
+  "description_for_model": "This plugin allows you to interact with a short term memory service. Use this plugin to interact with temporary data storage, which can later be processed or transferred as needed. It's specifically designed for short term memory interactions.",
+  "auth": {
+    "type": "none"
+  },
+  "api": {
+    "type": "openapi",
+    "url": "http://localhost:5030/openapi.yaml",
+    "is_user_authenticated": false
+  },
+  "logo_url": "http://localhost:5030/logo.png",
+  "contact_email": "cutmastakun@gmail.com",
+  "legal_info_url": "https://example.com/legal"
+}

@@ -17,7 +17,7 @@ class MemoryClient:
     SUPPORTED_FILTERS = ['limit']
     SUPPORTED_SEARCH = ['uuid', 'queueID', 'id']
     PATH_PATTERN = r'^.+/get_.+\.json$'
-    PATH_EXTRACT_PATTERN = r'^(.+)/get_(.+?)(?:_by_[^/.]+)?(\.json)$'
+    PATH_EXTRACT_PATTERN = r'^(.+)/get_(.+)(\.json)$'
 
     def __init__(self, memory_host):
         """
@@ -201,9 +201,7 @@ class MemoryClient:
             elif param in self.SUPPORTED_SEARCH and re.match(self.PATH_PATTERN, path):
                 search_found = True
                 db_name, resource, json_ext = re.match(self.PATH_EXTRACT_PATTERN, path).groups()
-                # Überprüfen, ob der Pfad bereits einen by_<identifier> enthält
-                if f'_by_{param}' not in path:
-                    path = self.construct_path(db_name, resource, param, json_ext, True)
+                path = self.construct_path(db_name, resource, param, json_ext, True)
 
         # Überprüfen, ob sowohl ein Such- als auch ein Filterparameter gesetzt sind
         if filter_found and search_found:

@@ -41,60 +41,47 @@
         },
         "tasks": {
             "queries": {
-                "get_tasks_with_metadata": {
-                    "sql": "SELECT queueID, taskData, status, result, systemMessage, metadata, created_at FROM tasks ORDER BY created_at DESC",
+                "get_task": {
+                    "sql": "SELECT queueID, taskData, status, result, systemMessage, metadata, parent, children, created_at FROM tasks ORDER BY created_at DESC",
                     "title": "Get Tasks"
                 },
-                "get_tasks": {
-                    "sql": "SELECT queueID, taskData, status, result, systemMessage, created_at FROM tasks ORDER BY created_at DESC",
-                    "title": "Get Tasks"
-                },
-                "get_tasks_by_queueID": {
-                    "sql": "SELECT queueID, taskData, status, result, systemMessage, metadata, created_at FROM tasks WHERE queueID = :queueID",
+                "get_task_by_queueID": {
+                    "sql": "SELECT queueID, taskData, status, result, systemMessage, metadata, parent, children, created_at FROM tasks WHERE queueID = :queueID",
                     "title": "Get Tasks by queueID",
                     "params": ["queueID"]
                 },
-                "add_task_with_metadata": {
-                    "sql": "INSERT INTO tasks (queueID, taskData, status, result, systemMessage, metadata) VALUES (:queueID, :taskData, :status, :result, :systemMessage, :metadata)",
-                    "write": true,
-                    "on_success_message": "Task inserted",
-                    "on_success_redirect": "/tasks/get_tasks_by_queueID.json?queueID=",
-                    "on_error_message": "Task insert failed",
-                    "on_error_redirect": "/tasks.json",
-                    "params": ["queueID", "taskData", "status", "result", "systemMessage", "metadata"]
-                },
                 "add_task": {
-                    "sql": "INSERT INTO tasks (queueID, taskData, status, result, systemMessage) VALUES (:queueID, :taskData, :status, :result, :systemMessage)",
+                    "sql": "INSERT INTO tasks (queueID, taskData, status, result, systemMessage, metadata, parent, children) VALUES (:queueID, :taskData, :status, :result, :systemMessage, COALESCE(:metadata, '{}'), COALESCE(:parent, NULL), COALESCE(:children, '[]'))",
                     "write": true,
                     "on_success_message": "Task inserted",
-                    "on_success_redirect": "/tasks/get_tasks_by_queueID.json?queueID=",
+                    "on_success_redirect": "/tasks/get_task_by_queueID.json?queueID=",
                     "on_error_message": "Task insert failed",
                     "on_error_redirect": "/tasks.json",
-                    "params": ["queueID", "taskData", "status", "result", "systemMessage"]
+                    "params": ["queueID", "taskData", "status", "result", "systemMessage", "metadata", "parent", "children"]
                 },
                 "update_task": {
-                    "sql": "UPDATE tasks SET status = :status, result = :result, systemMessage = :systemMessage, metadata = :metadata WHERE queueID = :queueID",
+                    "sql": "UPDATE tasks SET status = :status, result = :result, systemMessage = :systemMessage, metadata = COALESCE(:metadata, '{}'), parent = COALESCE(:parent, NULL), children = COALESCE(:children, '[]') WHERE queueID = :queueID",
                     "write": true,
                     "on_success_message": "Task updated",
-                    "on_success_redirect": "/tasks/get_tasks_by_queueID.json?queueID=",
+                    "on_success_redirect": "/tasks/get_task_by_queueID.json?queueID=",
                     "on_error_message": "Task update failed",
                     "on_error_redirect": "/tasks.json",
-                    "params": ["queueID", "status", "result", "systemMessage", "metadata"]
+                    "params": ["queueID", "status", "result", "systemMessage", "metadata", "parent", "children"]
                 }
             }
         },
         "messages": {
             "queries": {
-                "get_messages": {
+                "get_message": {
                     "sql": "SELECT * FROM messages ORDER BY created_at DESC",
                     "title": "Get Messages"
                 },
-                "get_messages_with_limit": {
+                "get_message_with_limit": {
                     "sql": "SELECT * FROM messages ORDER BY created_at DESC LIMIT :limit",
                     "title": "Get Messages with Limit",
                     "params": ["limit"]
                 },
-                "get_messages_by_uuid": {
+                "get_message_by_uuid": {
                     "sql": "SELECT * FROM messages WHERE uuid = :uuid",
                     "title": "Get Message by UUID",
                     "params": ["uuid"]
@@ -104,9 +91,9 @@
                     "title": "Insert Message",
                     "write": true,
                     "on_success_message": "Message inserted",
-                    "on_success_redirect": "/messages/get_messages_by_uuid.json?uuid=",
+                    "on_success_redirect": "/messages/get_message_by_uuid.json?uuid=",
                     "on_error_message": "Message insert failed",
-                    "on_error_redirect": "/messages.json"
+                    "on_error_redirect": "/get_message.json"
                 },
 
                 "get_memory": {
@@ -136,9 +123,8 @@
                     "write": true,
                     "params": ["uuid", "message"],
                     "on_success_message": "Memory inserted",
-                    "on_success_redirect": "/messages/get_memory.json?uuid=",
-                    "on_error_message": "Message insert failed",
-                    "on_error_redirect": "/messages.json"
+                    "on_success_redirect": "/get_memory?uuid=",
+                    "on_error_message": "Message insert failed"
                 }
             }
         }

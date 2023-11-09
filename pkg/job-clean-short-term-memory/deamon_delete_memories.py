@@ -1,11 +1,12 @@
 # deamon_delete_memories.py
+
 import time
 import os
 import logging
 import json
-from tasks_repository import Task, get_tasks_with_metadata, update_task
+from tasks_repository import Task, update_task
 from memory_repository import delete_memory_by_uuid
-from common_utils import generate_task_status_from_system_message, generate_system_message, find_task
+from common_utils import setup_task, generate_task_status_from_system_message, generate_system_message
 
 logging.basicConfig(level=logging.INFO)
 
@@ -31,53 +32,53 @@ def process_uuids(task: Task, uuids_to_delete):
 
     return result_messages, all(success_statuses)
 
-def update_task_status(task: Task, success):
-    task.systemMessage = generate_system_message(task)
-    task_status = generate_task_status_from_system_message(task.systemMessage)
-    task.status = task_status if task_status else "failed"
-
+def initialize_task(task: Task):
+    task.status = "in-progress"
+    task.systemMessage = "Ich lösche die Einträge mal eben..."
     return update_task(MEMORY_HOST, task)
 
-def solve_delete_task(task: Task):
-    parsed_task_data, error_message = parse_task_data(task)
-    if error_message:
-        task.result = error_message
-        return False
+def finalize_task(task: Task, success: bool, result_message: str):
+    task.result = result_message
+    task.systemMessage = generate_system_message(task)
+    task.status = generate_task_status_from_system_message(task.systemMessage) if success else "failed"
+    update_task(MEMORY_HOST, task)
 
-    uuids_to_delete = parsed_task_data.get("uuids", [])
-    if not uuids_to_delete:
-        logging.info(f"No UUIDs to delete for task {task.queueID}")
-        return True
-
-    result_messages, success = process_uuids(task, uuids_to_delete)
-    task.result = "\n".join(result_messages)
-    return success
+def handle_error(task: Task):
+    task.status = "failed"
+    task.result = "Es gab ein Problem beim Löschen der Erinnerungen."
+    update_task(MEMORY_HOST, task)
 
 def check_delete_tasks():
     try:
-        tasks = get_tasks_with_metadata(MEMORY_HOST)
-        if not tasks:
-            logging.info('No tasks retrieved or list is empty.')
-            return
-
-        task = find_task(tasks, {'status': 'queued', 'metadata.task-type': 'delete-memories'})
+        task = setup_task(MEMORY_HOST, {'status': 'queued', 'metadata.task-type': 'delete-memories'})
         if not task:
-            logging.info('No delete task found with the given criteria.')
             return
 
-        task.status = "in-progress"
-        task.systemMessage = "Ich lösche die Einträge mal eben..."
-        update_task(MEMORY_HOST, task)
+        success = initialize_task(task)
 
-        success = solve_delete_task(task)
-        update_task_status(task, success)
+        if not success:
+            logging.error(f"Failed to update task {task.queueID}")
+            return
+
+        parsed_task_data, error_message = parse_task_data(task)
+
+        if error_message:
+            finalize_task(task, False, error_message)
+            return
+
+        uuids_to_delete = parsed_task_data.get("uuids", [])
+        if not uuids_to_delete:
+            logging.info(f"No UUIDs to delete for task {task.queueID}")
+            finalize_task(task, True, "No UUIDs to delete.")
+            return
+
+        result_messages, success = process_uuids(task, uuids_to_delete)
+        finalize_task(task, success, "\n".join(result_messages))
 
     except Exception as e:
         logging.error(f"An error occurred: {e}")
         if 'task' in locals():
-            task.status="failed"
-            task.result="Es gab ein Problem beim Löschen der Erinnerungen."
-            update_task(MEMORY_HOST, task)
+            handle_error(task)
         time.sleep(5)
 
 if __name__ == "__main__":

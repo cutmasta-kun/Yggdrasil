@@ -1,36 +1,42 @@
 # deamon_determine_test_memories.py
+
 import time
 import os
 import logging
 import json
-from tasks_repository import Task, get_tasks_with_metadata, update_task, add_task_with_metadata
-from common_utils import ask_deepthought, generate_system_message, find_task, uuid_regex_match, generate_task_status_from_system_message
+from tasks_repository import Task, update_task, add_task
+from common_utils import search_test_entries, setup_task, ask_deepthought, generate_system_message, uuid_regex_match, generate_task_status_from_system_message
 from deamon_delete_memories import check_delete_tasks
-
 
 logging.basicConfig(level=logging.INFO)
 
 MEMORY_HOST = os.getenv('MEMORY_HOST', 'http://plugin-memory-interface:5005')
 
-def solve_task(task: Task):
+def parse_task_data(task: Task):
     messages = [{"role": "user", "content": task.taskData}]
 
-    with open('system.json', 'r') as f:
+    with open('./messages/generate_list.json', 'r') as f:
         system_messages = json.load(f)
 
     messages = system_messages + messages
 
     logging.info('messages assembled...')
     logging.debug(f"messages: {messages}")
-    
+    return messages
+
+def solve_task(task: Task):
     try:
-        logging.info('asking deepthought...')
-        deepthought_response = ask_deepthought(messages)
-        logging.debug(f"Response from DeepThought: {deepthought_response}")
+        messages = parse_task_data(task)
 
-        result = deepthought_response.get('messages', [])[-1].get('content', '') if deepthought_response.get('messages') else ''
+        logging.info('searching for test entries...')
+        uuid_list = search_test_entries(messages)
 
-        task.result = result
+        # Parsen der UUIDs als Liste von Strings
+        uuid_dict = [str(uuid) for uuid in uuid_list.uuids]
+
+        logging.debug(f"Test Entries: {uuid_list}")
+
+        task.result = json.dumps(uuid_dict)
         system_message = generate_system_message(task)
 
         return system_message
@@ -39,7 +45,17 @@ def solve_task(task: Task):
         logging.error(f"Failed to ask deepthought for task {task.queueID}: {e}")
         return None
 
-def create_delete_task(task):
+def initialize_task(task: Task):
+    task.status = "in-progress"
+    task.systemMessage = "Ich schau mir das mal an..."
+    return update_task(MEMORY_HOST, task)
+
+def finalize_task(task: Task, success: bool, system_message: str):
+    task.status = "done" if success else "failed"
+    task.systemMessage = system_message if system_message else 'Systemnachricht gerade nicht verfügbar...'
+    return update_task(MEMORY_HOST, task)
+
+def create_delete_task(task: Task):
     try:
         parsed_result = json.loads(task.result)
     except json.JSONDecodeError:
@@ -53,42 +69,47 @@ def create_delete_task(task):
         uuids_to_delete.append(parsed_result)
 
     if not uuids_to_delete:
-        return False
+        return None
 
     delete_task_data = {
         "taskData": json.dumps({"uuids": uuids_to_delete}),
         "status": "queued",
-        "result": None,
-        "systemMessage": None,
-        "metadata": {"task-type": "delete-memories"}
+        "metadata": {"task-type": "delete-memories"},
+        "parent": task.queueID
     }
 
     new_task = Task(**delete_task_data)
-    queueID = add_task_with_metadata(MEMORY_HOST, new_task)
+    queueID = add_task(MEMORY_HOST, new_task)
 
-    return queueID is not None
+    return queueID
+
+def post_process(task: Task):
+    new_task_queueID = create_delete_task(task)
+    if not new_task_queueID:
+        logging.error("Failed to create delete task.")
+        return
+
+    logging.info("Delete task created successfully.")
+    
+    # Füge die QueueID des neuen Tasks zur Liste der children des ursprünglichen Tasks hinzu
+    task.children.append(new_task_queueID)
+    
+    # Aktualisiere den ursprünglichen Task, um die neuen children zu speichern
+    if update_task(MEMORY_HOST, task):
+        logging.info("Task updated successfully with new children.")
+    else:
+        logging.error("Failed to update task with new children.")
+    
+    check_delete_tasks()
 
 def check_tasks():
     try:
-        logging.info('getting tasks...')
-        tasks = get_tasks_with_metadata(MEMORY_HOST)
-
-        logging.debug(f"tasks: {tasks}")
-
-        if not tasks:
-            logging.info('No tasks retrieved or list is empty.')
-            return
-
-        task = find_task(tasks, {'status': 'queued', 'metadata.task-type': 'clean-short-memory'})
-
+        task = setup_task(MEMORY_HOST, {'status': 'queued', 'metadata.task-type': 'clean-short-memory'})
         if not task:
-            logging.info('No task found with the given criteria.')
             return
 
-        task.status = "in-progress"
-        task.systemMessage = "Ich schau mir das mal an..."
-        success = update_task(MEMORY_HOST, task)
-
+        success = initialize_task(task)
+        
         if not success:
             logging.error(f"Failed to update task {task.queueID}")
             return
@@ -97,33 +118,18 @@ def check_tasks():
         task_status = generate_task_status_from_system_message(system_message)
 
         if task_status == "done":
-            task.status = "done"
-            task.systemMessage = system_message if system_message else 'Systemnachricht gerade nicht verfügbar...'
-            update_success = update_task(MEMORY_HOST, task)
-
-            if not update_success:
-                logging.error(f"Failed to update task {task.queueID} after solving")
-                return
-
+            finalize_task(task, True, system_message)
             logging.info('Task updated successfully after being solved')
-
-            if task.metadata.get("task-type") == "clean-short-memory":
-                delete_task_created = create_delete_task(task)
-                if delete_task_created:
-                    logging.info("Delete task created successfully.")
-                    check_delete_tasks()
-                else:
-                    logging.error("Failed to create delete task.")
+            post_process(task)
         else:
-            task.status = "failed"
-            task.systemMessage = system_message if system_message else 'Systemnachricht gerade nicht verfügbar...'
-            update_task(MEMORY_HOST, task)
+            finalize_task(task, False, system_message)
             logging.error('Failed to solve the task')
 
     except Exception as e:
         logging.error(f"An error occurred: {e}")
+        if 'task' in locals():
+            finalize_task(task, False, "Es gab ein Problem beim Lösen des Tasks.")
         time.sleep(5)
-        update_task(task, "failed", "Es gab ein Problem beim Lösen des Tasks.")
 
 if __name__ == "__main__":
     while True:

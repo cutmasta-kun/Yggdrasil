@@ -1,10 +1,12 @@
 # api_server.py
-from fastapi import FastAPI, Request, Response, HTTPException
+from fastapi import FastAPI, Request, Response, HTTPException, Depends
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 import yaml
 import os
 from memory_client import MemoryClient
+from fast_api_boilerplate import setup_app
+from pydantic import BaseModel
 
 # Extrahieren Sie den MEMORY_HOST aus den Umgebungsvariablen oder verwenden Sie den Standardwert
 MEMORY_HOST = os.getenv('MEMORY_HOST', 'http://memory:5006')
@@ -13,47 +15,24 @@ memory_client = MemoryClient(MEMORY_HOST)
 
 app = FastAPI(
     title="Plugin Memory Interface",
+    description="A generic interface to interact with the memory service which performs CRUD operations on JSON data.",
     version="1.0.0",
+    openapi_tags=[{
+        "name": "MemoryOperations",
+        "description": "CRUD operations for memory data handling.",
+    }],
     servers=[{"url": f"http://localhost:{PORT}", "description": "Local server"}],
 )
 
-# Enable CORS
-origins = ["*"]
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-@app.options("/openapi.yaml")
-def options_openapi():
-    return Response(status_code=200)
-
-@app.options("/.well-known/ai-plugin.json")
-def options_plugin_manifest():
-    return Response(status_code=200)
-
-@app.get("/logo.png")
-def plugin_logo():
-    filename = 'logo.png'
-    return FileResponse(filename, media_type='image/png')
-
-@app.get("/.well-known/ai-plugin.json", include_in_schema=False)
-async def plugin_manifest(request: Request):
-    host = request.client.host
-    return Response(content=open("./ai-plugin.json", "r").read(), media_type="application/json")
-
-@app.get("/openapi.yaml", include_in_schema=False)
-def get_openapi_yaml():
-    with open("openapi.yaml") as f:
-        text = f.read()
-        return Response(text, media_type="text/yaml")
+setup_app(app)
 
 IGNORED_PATHS = ["favicon.ico"]
 
-@app.get("/{path:path}")
+@app.get("/{path:path}", 
+         summary="Retrieve Memory Data", 
+         description="Retrieves data from the memory service based on the given path.", 
+         operation_id="getMemoryData",
+         tags=["MemoryOperations"])
 async def catch_all_get(path: str, request: Request):
     if path in IGNORED_PATHS:
         return Response(status_code=204)  # No Content
@@ -63,7 +42,11 @@ async def catch_all_get(path: str, request: Request):
     response_content, status_code, headers = await memory_client.get_action(request, path)
     return JSONResponse(content=response_content, status_code=status_code, headers=headers)
 
-@app.post("/{path:path}")
+@app.post("/{path:path}", 
+          summary="Add or Update Memory Data", 
+          description="Adds or updates data in the memory service based on the given path.", 
+          operation_id="addOrUpdateMemoryData",
+          tags=["MemoryOperations"])
 async def catch_all_post(path: str, request: Request):
     if not path.endswith('.json'):
         path += '.json'
@@ -71,7 +54,11 @@ async def catch_all_post(path: str, request: Request):
     response_content, status_code, headers = await memory_client.post_action(request, path)
     return JSONResponse(content=response_content, status_code=status_code, headers=headers)
 
-@app.delete('/{path:path}')
+@app.delete("/{path:path}", 
+            summary="Delete Memory Data", 
+            description="Deletes data from the memory service based on the given path.", 
+            operation_id="deleteMemoryData",
+            tags=["MemoryOperations"])
 async def catch_all_delete(path: str, request: Request):
     if not path.endswith('.json'):
         path += '.json'

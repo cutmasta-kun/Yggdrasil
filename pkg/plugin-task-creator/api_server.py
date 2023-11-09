@@ -1,30 +1,49 @@
 # api_server.py
-from fastapi import FastAPI, HTTPException, Request, Response
-from fastapi.responses import JSONResponse
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel
-from typing import Optional
+from fastapi import FastAPI, HTTPException, Query
+from pydantic import BaseModel, UUID4
+from typing import List, Optional
 import logging
 import os
-import yaml
-from tasks_repository import get_tasks_with_metadata, add_task, add_task_with_metadata, get_task_by_queueID, update_task, Task
+from tasks_repository import get_tasks, add_task, get_task_by_queueID, update_task, Task
+from fast_api_boilerplate import setup_app
+import uuid
+
+PORT = int(os.environ.get('PORT', 5010))
 
 # Configurate application
 logging.basicConfig(level=logging.INFO)
+
 app = FastAPI(
     title="Task Queue Manager",
-    description="The Task Queue Manager API is responsible for managing and retrieving tasks in a queue system. It supports operations like adding new tasks, retrieving existing tasks, updating task statuses, and querying tasks by their queue ID. The system is designed to efficiently handle task queues for various purposes.",
+    description="The Task Queue Manager API is responsible for managing and retrieving tasks in a queue system.",
     version="1.0.0",
+    openapi_tags=[{
+        "name": "Tasks",
+        "description": "Operations to manage tasks in the queue.",
+    }],
+    servers=[{"url": f"http://localhost:{PORT}", "description": "Local server"}],
 )
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # Allows all origins
-    allow_credentials=True,
-    allow_methods=["*"],  # Allows all methods
-    allow_headers=["*"],  # Allows all headers
-)
+setup_app(app)
+
+class TaskResponse(BaseModel):
+    queueID: UUID4
+    taskData: str
+    status: str
+    result: Optional[str]
+    systemMessage: Optional[str]
+    metadata: Optional[dict]
+    parent: Optional[str]
+    children: List[str]
+
+class QueueTaskResponse(BaseModel):
+    status: str
+    queueID: UUID4
+    systemMessage: Optional[str]
+
+class UpdateTaskResponse(BaseModel):
+    status: str
+    message: str
 
 class TaskData(BaseModel):
     taskData: str
@@ -32,47 +51,35 @@ class TaskData(BaseModel):
 
 MEMORY_HOST = os.getenv('MEMORY_HOST', 'http://plugin-memory-interface:5005')
 
-@app.get("/logo.png", include_in_schema=False)
-async def plugin_logo():
-    return Response(content=open("logo.png", "rb").read(), media_type="image/png")
-
-
-@app.get("/openapi.yaml", include_in_schema=False)
-def get_openapi_yaml():
-    openapi_schema = app.openapi()
-
-    order = ['openapi', 'info', 'paths', 'components']
-    
-    yaml_output = ""
-    for key in order:
-        section = {key: openapi_schema[key]}
-        yaml_output += yaml.dump(section)
-    
-    return Response(yaml_output, media_type="text/yaml")
-
-@app.get("/.well-known/ai-plugin.json", include_in_schema=False)
-async def plugin_manifest(request: Request):
-    host = request.client.host
-    return Response(content=open("./ai-plugin.json", "r").read(), media_type="application/json")
-
-
-@app.get('/get_queues')
+@app.get(
+    '/get_queues', 
+    summary="Get All Queues",
+    description="Retrieves a list of all tasks in the queue.",
+    response_model=List[TaskResponse],
+    tags=["Tasks"]
+)
 async def get_queues():
-    tasks = get_tasks_with_metadata(MEMORY_HOST)
+    tasks = get_tasks(MEMORY_HOST)
 
     if tasks:
-        tasks_list = [task.dict() for task in tasks]
+        tasks_list = [task.model_dump() for task in tasks]
         return tasks_list
     else:
         raise HTTPException(status_code=404, detail="No tasks found")
 
 
-@app.get('/get_queue_status')
-async def get_queue_status(queueID: str):
+@app.get(
+    '/get_queue_status',
+    summary="Get Queue Status",
+    description="Retrieves the status of a specific task in the queue by its queue ID.",
+    response_model=TaskResponse,
+    tags=["Tasks"]
+)
+async def get_queue_status(queueID: UUID4 = Query(..., description="The ID of the queue to retrieve")):
     task = get_task_by_queueID(MEMORY_HOST, queueID)
     
     if task:
-        return task.dict()
+        return task.model_dump()
     else:
         raise HTTPException(status_code=404, detail="Task not found")
 
@@ -80,10 +87,7 @@ async def get_queue_status(queueID: str):
 async def queue_task(task: TaskData):
     new_task = Task(taskData=task.taskData, status='queued', result=None, systemMessage=None, metadata=task.metadata)
     
-    if task.metadata:
-        queueID = add_task_with_metadata(MEMORY_HOST, new_task)
-    else:
-        queueID = add_task(MEMORY_HOST, new_task)
+    queueID = add_task(MEMORY_HOST, new_task)
     
     if queueID:
         return {
@@ -95,7 +99,13 @@ async def queue_task(task: TaskData):
         raise HTTPException(status_code=500, detail="Error queueing task")
 
 
-@app.patch('/update_task')
+@app.patch(
+    '/update_task', 
+    summary="Update a Task",
+    description="Updates an existing task in the queue.",
+    response_model=UpdateTaskResponse,
+    tags=["Tasks"]
+)
 async def update_task_action(task: Task):
     result = update_task(MEMORY_HOST, task)
     if result:
@@ -108,4 +118,4 @@ async def update_task_action(task: Task):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=5010)
+    uvicorn.run(app, host="0.0.0.0", port=PORT)

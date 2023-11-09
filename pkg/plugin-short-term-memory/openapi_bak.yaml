@@ -1,0 +1,66 @@
+openapi: 3.0.1
+info:
+  title: Short Term Memory Interface Plugin
+  version: 'v1'
+servers:
+  - url: http://localhost:5030
+paths:
+  /add_memory:
+    post:
+      operationId: addToShortTermMemory
+      tags:
+        - ShortTermMemory
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    description: "Indicates the successful creation of the resource. In this case, 'Memory' refers to the newly created resource."
+                    example: "Memory inserted"
+                  redirect:
+                    type: string
+                    description: "Path to the newly created resource. The UUID is generated during the creation of the resource."
+                    example: "/get_memory_by_uuid.json?uuid=9a2b9ea8-6198-4695-806a-814099b6cc2d"
+  /get_memory:
+    get:
+      operationId: getShortTermMemory
+      tags:
+        - ShortTermMemory
+      summary: Retrieve memory or memories
+      description: Retrieve a specific memory by its UUID or all memories if no UUID is provided. If no UUID is provided, you can limit the number of memories returned.
+      parameters:
+        - name: uuid
+          in: query
+          description: The UUID of the memory to retrieve. If not provided, all memories are returned.
+          required: false
+          schema:
+            type: string
+            nullable: true
+        - name: limit
+          in: query
+          description: Limit the number of memories returned. Ignored if UUID is provided.
+          required: false
+          schema:
+            type: integer
+            default: 10
+            nullable: true
+      responses:
+        '200':
+          description: OK

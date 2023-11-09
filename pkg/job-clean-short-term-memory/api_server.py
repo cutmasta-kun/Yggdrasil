@@ -30,7 +30,7 @@ app.add_middleware(
 
 # Extrahieren Sie den MEMORY_HOST aus den Umgebungsvariablen oder verwenden Sie den Standardwert
 MEMORY_HOST = os.getenv('MEMORY_HOST', 'http://plugin-memory-interface:5005')
-GET_MEMORY_PATH = 'messages/get_memories.json'
+GET_MEMORY_PATH = 'messages/get_memory.json'
 
 TASK_CREATOR_HOST = os.getenv('TASK_CREATOR_HOST', 'http://plugin-task-creator:5010')
 TASK_CREATOR_PATH = 'queue_task'
@@ -48,7 +48,7 @@ def get_openapi_yaml():
     
     return Response(yaml_output, media_type="text/yaml")
 
-from tasks_repository import Task, add_task_with_metadata
+from tasks_repository import Task, add_task
 
 @app.post('/create_task_clean')
 async def create_task_clean(background_tasks: BackgroundTasks):
@@ -62,22 +62,16 @@ async def create_task_clean(background_tasks: BackgroundTasks):
         logging.error(f"Failed to get data from Memory Service: {e}")
         raise HTTPException(status_code=500, detail="Failed to get data from Memory Service")
 
-    # Lese den Task-Text aus der Datei
-    with open('task_text.txt', 'r') as file:
+    with open('./messages/determine_messages_to_delete.txt', 'r') as file:
         task_text = file.read()
 
-    # Konvertiere die Daten in einen formatierten String
-    tasks_str = json.dumps(data, indent=4)  # Macht den JSON lesbarer
+    tasks_str = json.dumps(data)
 
-    # Ersetze den Platzhalter durch die tatsächlichen Daten
     task_data = task_text.replace('<<TASKS>>', tasks_str)
     
-    # Erstelle eine neue Task-Instanz
     new_task = Task(
         taskData=task_data,
         status='queued',
-        result=None,
-        systemMessage=None,
         metadata={
             "task-type": "clean-short-memory"
         }
@@ -86,7 +80,7 @@ async def create_task_clean(background_tasks: BackgroundTasks):
     logging.debug(f"new_task: {new_task}")
 
     # Versuche, den Task zur Warteschlange hinzuzufügen
-    queueID = add_task_with_metadata(MEMORY_HOST, new_task)
+    queueID = add_task(MEMORY_HOST, new_task)
 
     if queueID is None:
         raise HTTPException(status_code=500, detail="Failed to queue task")

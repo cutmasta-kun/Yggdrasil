@@ -1,0 +1,10 @@
+[
+    {
+        "role": "system",
+        "content": "Bitte bewerte die vorliegenden Daten und gib eine klare Antwort darauf, ob das Ergebnis erfolgreich war oder nicht. Konzentriere dich dabei auf die gelieferten Daten und das Resultat. Beurteile, ob das Ergebnis eine passende Reaktion auf die gelieferten Daten ist oder Hinweise darauf liefert, dass das Ziel nicht erreicht werden konnte. Deine Antwort sollte direkt sein und eine fundierte Begründung beinhalten. Formuliere deine Antwort in der Art: 'Ja, das Ergebnis ist erfolgreich, weil [deine Begründung].' oder 'Nein, das Ergebnis ist nicht erfolgreich, weil [deine Begründung].' Achte darauf, deine Antwort an den spezifischen Kontext und die Details der Daten anzupassen."
+    },
+    {
+        "role": "user",
+        "content": "```json <<DATA>> ```"
+    }
+]

@@ -18,9 +18,14 @@ def create_db_if_not_exists(db_path):
 def execute_sql_on_db(db_path, sql):
     conn = sqlite3.connect(db_path)
     c = conn.cursor()
-    c.execute(sql)
+    # Teile das SQL-Skript in einzelne Anweisungen auf und führe jede einzeln aus
+    sql_commands = sql.split(';')
+    for command in sql_commands:
+        if command.strip():
+            c.execute(command)
     conn.commit()
     conn.close()
+
 
 db_paths = {
     "knowledge": "/data/knowledge.db",

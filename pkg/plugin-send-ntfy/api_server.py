@@ -1,11 +1,9 @@
 # api_server.py
-from fastapi import FastAPI, HTTPException, Body, Response
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import os
 import requests
-import yaml
+from fast_api_boilerplate import setup_app
 
 # Define constants
 NTFY_HOST = os.environ.get('NTFY_HOST', "https://ntfy.sh")
@@ -23,49 +21,9 @@ app = FastAPI(
     servers=[{"url": f"http://localhost:{PORT}", "description": "Local server"}],
 )
 
-# Enable CORS
-origins = ["*"]
+setup_app(app)
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-@app.get("/logo.png", include_in_schema=False)
-def plugin_logo():
-    filename = 'logo.png'
-    return FileResponse(filename, media_type='image/png')
-
-@app.get("/.well-known/ai-plugin.json", include_in_schema=False)
-def plugin_manifest():
-    with open("./ai-plugin.json") as f:
-        text = f.read()
-        return Response(content=text, media_type="application/json")
-
-@app.get("/openapi.yaml", include_in_schema=False)
-def get_openapi_yaml():
-    openapi_schema = app.openapi()
-
-    # Konvertieren der 'AnyUrl'-Objekte in Strings
-    if "servers" in openapi_schema:
-        for server in openapi_schema["servers"]:
-            if hasattr(server["url"], "__str__"):  # Prüfen, ob das Objekt in einen String umgewandelt werden kann
-                server["url"] = server["url"].__str__()
-
-    order = ['openapi', 'info', 'servers', 'paths', 'components']
-
-    yaml_output = ""
-    for key in order:
-        if key in openapi_schema:
-            section = {key: openapi_schema[key]}
-            yaml_output += yaml.dump(section, sort_keys=False)  # sort_keys=False behält die Reihenfolge der Schlüssel bei
-
-    return Response(yaml_output, media_type="text/yaml")
-
-from typing import Optional, List
+from typing import Optional
 
 class Message(BaseModel):
     message: str
