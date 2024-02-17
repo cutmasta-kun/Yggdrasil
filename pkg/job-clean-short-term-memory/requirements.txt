@@ -3,5 +3,5 @@ fastapi==0.104.1
 requests==2.31.0
 uvicorn==0.23.2
 pydantic==2.4.2
-openai==0.28.1
-instructor==0.2.9
+openai==1.2.0
+instructor==0.3.1

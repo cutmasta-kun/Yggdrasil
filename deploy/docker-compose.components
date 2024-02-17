@@ -1,6 +1,110 @@
 version: '3.9'
 
 services:
+  clean-short-term-memory:
+    image: python:slim
+    container_name: clean-short-term-memory
+    working_dir: /app
+    volumes:
+      - ./../pkg/job-clean-short-term-memory:/app
+      - ./../certs:/certs
+    environment:
+      MEMORY_HOST: 'http://plugin-memory-interface:5005'
+      TASK_CREATOR_HOST: 'http://plugin-task-creator:5010'
+      OPENAI_API_KEY: ''
+    ports:
+      - "5021:5021"
+    command: >
+      /bin/sh -c "apt-get update && apt-get install -y procps 
+      && pip install -r requirements.txt 
+      && python -u main.py"
+    cpu_shares: 1024
+    healthcheck:
+      test: 
+        - CMD-SHELL
+        - pgrep -f 'main.py' || exit 1
+      interval: 2s
+      timeout: 2s
+      retries: 3
+      
+  plugin-task-creator:
+    image: python:slim
+    container_name: plugin-task-creator
+    volumes:
+      - ./../pkg/plugin-task-creator:/app
+    working_dir: /app
+    ports:
+      - "5010:5010"
+    command: >
+      /bin/sh -c "apt-get update && apt-get install -y procps 
+      && pip install -r requirements.txt 
+      && python -u main.py"
+    depends_on:
+      - memory
+    environment:
+      MEMORY_HOST: 'http://plugin-memory-interface:5005'
+    cpu_shares: 1024
+    healthcheck:
+      test: 
+        - CMD-SHELL
+        - pgrep -f 'main.py' || exit 1
+      interval: 2s
+      timeout: 2s
+      retries: 3
+
+  function-ask-with-memory:
+    image: python:slim
+    container_name: function-ask-with-memory
+    volumes:
+      - ./../pkg/function-ask-with-memory:/app
+    working_dir: /app
+    environment:
+      RETRIEVAL_API_URL_BASE: 'http://retrieval-app:8080'
+      OPENAI_API_KEY: ''
+      AI_MODEL: 'gpt-4 or gpt-3.5-turbo'
+    ports:
+      - "5023:5022"
+    command: >
+      /bin/sh -c "apt-get update && apt-get install -y procps 
+      && pip install -r requirements.txt 
+      && python -u main.py"
+    depends_on:
+      - memory
+    cpu_shares: 1024
+    healthcheck:
+      test: 
+        - CMD-SHELL
+        - pgrep -f 'main.py' || exit 1
+      interval: 2s
+      timeout: 2s
+      retries: 3
+
+  function-ask-question:
+    image: python:slim
+    container_name: function-ask-question
+    volumes:
+      - ./../pkg/function-ask-question:/app
+    working_dir: /app
+    environment:
+      OPENAI_API_KEY: ''
+      AI_MODEL: 'gpt-4 or gpt-3.5-turbo'
+    ports:
+      - "5022:5022"
+    command: >
+      /bin/sh -c "apt-get update && apt-get install -y procps 
+      && pip install -r requirements.txt 
+      && python -u main.py"
+    depends_on:
+      - memory
+    cpu_shares: 1024
+    healthcheck:
+      test: 
+        - CMD-SHELL
+        - pgrep -f 'main.py' || exit 1
+      interval: 2s
+      timeout: 2s
+      retries: 3
+
 ## -- COMMUNICATION SECTION -- ##
   communication-hub:
     image: python:slim
@@ -77,6 +181,9 @@ services:
       /bin/sh -c "apt-get update && apt-get install -y procps 
       && pip install -r requirements.txt 
       && python -u main.py"
+    environment:
+      OPENAI_API_KEY: ''
+      PORT: 5003
     cpu_shares: 1024
     healthcheck:
       test: 

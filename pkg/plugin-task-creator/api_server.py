@@ -1,14 +1,16 @@
 # api_server.py
-from fastapi import FastAPI, HTTPException, Query
-from pydantic import BaseModel, UUID4
-from typing import List, Optional
+from fastapi import FastAPI, HTTPException, Query, Request
+from pydantic import BaseModel, UUID4, Field
+from typing import List, Optional, Any
 import logging
+import time
 import os
 from tasks_repository import get_tasks, add_task, get_task_by_queueID, update_task, Task
-from fast_api_boilerplate import setup_app
+from fast_api_boilerplate import setup_app, ServerTimingMiddleware
 import uuid
 
 PORT = int(os.environ.get('PORT', 5010))
+MEMORY_HOST = os.getenv('MEMORY_HOST', 'http://plugin-memory-interface:5005')
 
 # Configurate application
 logging.basicConfig(level=logging.INFO)
@@ -26,95 +28,89 @@ app = FastAPI(
 
 setup_app(app)
 
-class TaskResponse(BaseModel):
-    queueID: UUID4
-    taskData: str
-    status: str
-    result: Optional[str]
-    systemMessage: Optional[str]
-    metadata: Optional[dict]
-    parent: Optional[str]
-    children: List[str]
+app.add_middleware(ServerTimingMiddleware)
 
-class QueueTaskResponse(BaseModel):
-    status: str
-    queueID: UUID4
-    systemMessage: Optional[str]
-
-class UpdateTaskResponse(BaseModel):
-    status: str
-    message: str
-
-class TaskData(BaseModel):
+class QueueTaskPayload(BaseModel):
     taskData: str
     metadata: Optional[dict] = None
 
-MEMORY_HOST = os.getenv('MEMORY_HOST', 'http://plugin-memory-interface:5005')
+class Response(BaseModel):
+    result: Any = None
+    error: bool = Field(default=False)
+    message: Optional[str] = None
 
 @app.get(
     '/get_queues', 
-    summary="Get All Queues",
-    description="Retrieves a list of all tasks in the queue.",
-    response_model=List[TaskResponse],
-    tags=["Tasks"]
-)
-async def get_queues():
-    tasks = get_tasks(MEMORY_HOST)
-
-    if tasks:
-        tasks_list = [task.model_dump() for task in tasks]
-        return tasks_list
-    else:
-        raise HTTPException(status_code=404, detail="No tasks found")
-
+    summary="Get All Tasks in Queues",
+    description="Retrieves a comprehensive list of all tasks currently present in the queue system. This is useful for getting an overview of all tasks and their statuses.",
+    operation_id="getAllQueuedTasks",
+    response_model=Response,
+    tags=["Tasks"])
+async def get_queues(request: Request):
+    try:
+        tasks = get_tasks(MEMORY_HOST)
+        tasks_list = [task.model_dump() for task in tasks] if tasks else []
+        request.state.timing_marks.append(('tasks-load', time.time()))
+        return Response(result=tasks_list)
+    except Exception as e:
+        return Response(error=True, message=str(e))
 
 @app.get(
     '/get_queue_status',
-    summary="Get Queue Status",
-    description="Retrieves the status of a specific task in the queue by its queue ID.",
-    response_model=TaskResponse,
-    tags=["Tasks"]
-)
-async def get_queue_status(queueID: UUID4 = Query(..., description="The ID of the queue to retrieve")):
-    task = get_task_by_queueID(MEMORY_HOST, queueID)
-    
-    if task:
-        return task.model_dump()
-    else:
-        raise HTTPException(status_code=404, detail="Task not found")
+    summary="Retrieve Specific Task Status",
+    description="Provides detailed status information for a specific task identified by its queue ID. This endpoint is key for tracking the progress or issues of individual tasks.",
+    operation_id="getSpecificTaskStatus",
+    response_model=Response,
+    tags=["Tasks"])
+async def get_queue_status(request: Request, queueID: UUID4 = Query(..., description="The ID of the queue to retrieve")):
+    try:
+        task = get_task_by_queueID(MEMORY_HOST, queueID)
+        request.state.timing_marks.append(('task-load', time.time()))
+        return Response(result=task.model_dump())
+    except Exception as e:
+        return Response(error=True, message=str(e))
 
-@app.post('/queue_task')
-async def queue_task(task: TaskData):
-    new_task = Task(taskData=task.taskData, status='queued', result=None, systemMessage=None, metadata=task.metadata)
-    
-    queueID = add_task(MEMORY_HOST, new_task)
-    
-    if queueID:
-        return {
-            "status": "queued",
-            "queueID": queueID,
-            "systemMessage": None
-        }
-    else:
-        raise HTTPException(status_code=500, detail="Error queueing task")
-
+@app.post(
+    '/queue_task',
+    summary="Queue a New Task",
+    description="Allows the submission of a new task to the queue system. This endpoint is used to add tasks that will be processed according to the queue logic.",
+    operation_id="queueNewTask",
+    response_model=Response,
+    tags=["Tasks"])
+async def queue_task(request: Request, payload: QueueTaskPayload):
+    try:
+        new_task = Task(taskData=payload.taskData, status='queued', metadata=payload.metadata)
+        task = add_task(MEMORY_HOST, new_task)
+        if task:
+            request.state.timing_marks.append(('task-write', time.time()))
+            return Response(result=task.model_dump(), message="Task created successfully")
+        else:
+            return Response(error=True, message="Task creation failed")
+    except Exception as e:
+        return Response(error=True, message=str(e))
 
 @app.patch(
     '/update_task', 
-    summary="Update a Task",
-    description="Updates an existing task in the queue.",
-    response_model=UpdateTaskResponse,
-    tags=["Tasks"]
-)
-async def update_task_action(task: Task):
-    result = update_task(MEMORY_HOST, task)
-    if result:
-        return {
-            "status": "success",
-            "message": "Task updated successfully"
-        }
-    else:
-        raise HTTPException(status_code=400, detail="Task update failed")
+    summary="Update an Existing Task",
+    description="Updates the properties of an existing task in the queue. This can be used to modify the status, systemmessage, result or other metadata after the task has been queued.",
+    operation_id="updateExistingTask",
+    response_model=Response,
+    tags=["Tasks"])
+async def update_task_action(request: Request, task: Task):
+    try:
+        updated_task = update_task(MEMORY_HOST, task)
+        if updated_task:
+            request.state.timing_marks.append(('task-write', time.time()))
+            return Response(result=updated_task.model_dump(), message="Task updated successfully")
+        else:
+            return Response(error=True, message="Task update failed")
+    except Exception as e:
+        return Response(error=True, message=str(e))
+
+# Exception-Handler
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request, exc):
+    return Response(result=None, error=True, message=exc.detail)
 
 if __name__ == "__main__":
     import uvicorn

@@ -1,0 +1,167 @@
+openapi: 3.1.0
+info:
+  title: Short Term Memory Interface Plugin
+  description: A plugin interface to interact with the short term memory service.
+    It allows adding and retrieving memories based on UUIDs.
+  version: 1.0.0
+servers:
+- url: http://localhost:5030
+  description: Local server
+paths:
+  /add_memory:
+    post:
+      tags:
+      - ShortTermMemory
+      summary: Add to Short Term Memory
+      description: Adds a message to the short term memory.
+      operationId: addToShortTermMemory
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddMemoryPayload'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MemoryResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /get_memory:
+    get:
+      tags:
+      - ShortTermMemory
+      summary: Retrieve Short Term Memory
+      description: Retrieves a specific memory by its UUID or all memories if no UUID
+        is provided.
+      operationId: getShortTermMemory
+      parameters:
+      - name: uuid
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Uuid
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          default: 10
+          title: Limit
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MemoryResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /delete_memory:
+    delete:
+      tags:
+      - ShortTermMemory
+      summary: Delete a Short Term Memory defined by a UUID
+      description: Deletes a Short Term Memory by a UUID.
+      operationId: deleteShortTermMemorybyUUID
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeleteMemoryPayload'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MemoryResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+components:
+  schemas:
+    AddMemoryPayload:
+      properties:
+        message:
+          type: string
+          title: Message
+          description: The message to be added to the short term memory.
+      type: object
+      required:
+      - message
+      title: AddMemoryPayload
+    DeleteMemoryPayload:
+      properties:
+        uuid:
+          type: string
+          title: Uuid
+          description: The UUID of the memory to delete.
+      type: object
+      required:
+      - uuid
+      title: DeleteMemoryPayload
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
+    MemoryResponse:
+      properties:
+        ok:
+          type: boolean
+          title: Ok
+        message:
+          type: string
+          title: Message
+        redirect:
+          type: string
+          title: Redirect
+      type: object
+      required:
+      - ok
+      - message
+      title: MemoryResponse
+    ValidationError:
+      properties:
+        loc:
+          items:
+            anyOf:
+            - type: string
+            - type: integer
+          type: array
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type
+      type: object
+      required:
+      - loc
+      - msg
+      - type
+      title: ValidationError

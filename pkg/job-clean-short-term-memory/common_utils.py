@@ -16,12 +16,10 @@ def ask_deepthought(messages):
     response.raise_for_status()
     return response.json()
 
-import openai
+from openai import OpenAI
 import instructor
 
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY', 'replace-me-af')
-
-instructor.patch()
 
 class Message(BaseModel):
     content: str
@@ -32,8 +30,10 @@ class UUIDList(BaseModel):
 
 def search_test_entries(messages: List[Message]) -> UUIDList:
     try:
-        uuids: UUIDList = openai.ChatCompletion.create(
-            model="gpt-4-1106-preview",
+        client = instructor.patch(OpenAI())
+
+        uuids: UUIDList = client.chat.completions.create(
+            model="gpt-4-0125-preview",
             response_model=UUIDList,
             messages=messages
         )

@@ -19,12 +19,13 @@ class MemoryClient:
     PATH_PATTERN = r'^.+/get_.+\.json$'
     PATH_EXTRACT_PATTERN = r'^(.+)/get_(.+)(\.json)$'
 
-    def __init__(self, memory_host):
+    def __init__(self, memory_host: str, service_name: str):
         """
         Initialize the MemoryClient with a specified memory host.
         :param memory_host: The base URL of the Memory Service.
         """
         self.memory_host = memory_host
+        self.service_name = service_name
 
     async def send_request(self, method, path, headers=None, params=None, data=None):
         """
@@ -46,6 +47,11 @@ class MemoryClient:
             except json.JSONDecodeError:
                 # Wenn der String kein valides JSON-Objekt ist, Fehler werfen oder entsprechend handeln
                 raise ValueError(f"Übergebener String ist kein valides JSON-Objekt: {data}")
+
+        request_id = str(uuid.uuid4())
+
+        headers['X-Request-ID'] = request_id
+        headers['X-Origin-Service'] = self.service_name
 
         try:
             response = requests.request(
@@ -84,16 +90,9 @@ class MemoryClient:
         if not uuid:
             return {"message": "UUID not provided"}, 400, {}
 
-        get_path = path.replace("delete", "get") + f"?uuid={uuid}"
-
-        get_response_content, get_status_code, _ = await self.get_action(request, get_path)
-
-        if get_status_code == 404 or not get_response_content:
-            return {"ok": True, "message": "Resource not found or already deleted", "redirect": None}, 200, {}
-
         try:
             response = await self.send_request(
-                method='POST',
+                method='DELETE',
                 path=path,
                 headers=headers,
                 data=data
@@ -121,14 +120,6 @@ class MemoryClient:
         """
         data = await request.json()
 
-        # Use the provided UUID or queueID if available, otherwise generate a new UUID
-        identifier = data.get('uuid') or data.get('queueID') or uuid.uuid4()
-
-        if data is not None:
-            data['uuid'] = str(identifier)
-        else:
-            data = {'uuid': str(identifier)}
-
         headers = {
             'Content-Type': 'application/json',
             'Accept': 'application/json'
@@ -145,7 +136,7 @@ class MemoryClient:
         headers = {}
 
         if 'Location' in response.headers:
-            headers['Location'] = f"{response.headers['Location']}{identifier}"
+            headers['Location'] = f"{response.headers['Location']}"
 
         response_content = response.text
 
@@ -157,77 +148,7 @@ class MemoryClient:
             # Wenn die Deserialisierung fehlschlägt, wird response_content als String belassen
             pass
 
-        if response.headers.get('Content-Type', '').startswith('application/json'):
-            try:
-                body = response.json()
-                if body.get("ok", False) and body.get("message", "").endswith(" inserted") and 'redirect' in body:
-                    redirect_base = body['redirect']
-                    body['redirect'] = f"{redirect_base}{identifier}"
-                    response_content = body
-            except ValueError:
-                pass  # Not a JSON response; do nothing
-
         return response_content, response.status_code, headers
-
-
-    def construct_path(self, db_name, resource, param, json_ext, is_search):
-        """
-        Constructs a new path based on the given parameters.
-        :param db_name: Database name.
-        :param resource: Resource name.
-        :param param: Parameter for the query.
-        :param json_ext: JSON extension for the path.
-        :param is_search: Indicates if the path is for a search action.
-        :return: Constructed path.
-        """
-        action = 'by' if is_search else 'with'
-        return f'{db_name}/get_{resource}_{action}_{param}{json_ext}'
-
-    def determine_path(self, path, params):
-        """
-        Determines the path based on the provided parameters and existing patterns.
-        :param path: Original path.
-        :param params: Query parameters.
-        :return: Modified path based on parameters.
-        """
-        filter_found = False
-        search_found = False
-
-        for param in params:
-            if param in self.SUPPORTED_FILTERS and re.match(self.PATH_PATTERN, path):
-                filter_found = True
-                db_name, resource, json_ext = re.match(self.PATH_EXTRACT_PATTERN, path).groups()
-                path = self.construct_path(db_name, resource, param, json_ext, False)
-            elif param in self.SUPPORTED_SEARCH and re.match(self.PATH_PATTERN, path):
-                search_found = True
-                db_name, resource, json_ext = re.match(self.PATH_EXTRACT_PATTERN, path).groups()
-                path = self.construct_path(db_name, resource, param, json_ext, True)
-
-        # Überprüfen, ob sowohl ein Such- als auch ein Filterparameter gesetzt sind
-        if filter_found and search_found:
-            raise ValueError("Both search and filter parameters set. Only one can be provided at a time.")
-
-        return path
-
-    def format_response_content(self, response_text):
-        """
-        Formats the response content from the Memory Service into a more readable structure.
-        :param response_text: Response text from the Memory Service.
-        :return: Formatted response content and status code.
-        """
-        response_dict = json.loads(response_text)
-
-        if 'rows' in response_dict and 'columns' in response_dict:
-            columns = response_dict['columns']
-            rows = response_dict['rows']
-
-            if not rows:
-                return {"message": "Resource not found"}, 404
-
-            formatted_rows = [dict(zip(columns, row)) for row in rows]
-            return formatted_rows, 200
-        else:
-            return response_dict, 200
 
     async def get_action(self, request, path):
         """
@@ -237,9 +158,6 @@ class MemoryClient:
         :param path: URL path for the GET action.
         :return: Response content, status code, and headers.
         """
-        params_dict = dict(request.query_params)
-        path = self.determine_path(path, params_dict)
-
         headers = {key: value for (key, value) in request.headers.items() if key != 'Host'}
 
         body_data = await request.body()
@@ -252,8 +170,4 @@ class MemoryClient:
             data=body_data
         )
 
-        response_content = response.text
-
-        response_content, status_code = self.format_response_content(response_content)
-
-        return response_content, status_code, {}
+        return response.json(), response.status_code, {}

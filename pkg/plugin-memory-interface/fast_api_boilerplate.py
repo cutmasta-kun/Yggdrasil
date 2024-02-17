@@ -61,3 +61,36 @@ def setup_app(app: FastAPI):
                     yaml_output += yaml.dump(section, sort_keys=False)
 
             return Response(yaml_output, media_type="text/yaml")
+
+from starlette.middleware.base import BaseHTTPMiddleware
+import logging
+import json
+
+class RegistryMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        # Extrahieren des X-Request-ID-Headers, falls vorhanden
+        request_id = request.headers.get('X-Request-ID')
+        origin_service = request.headers.get('X-Origin-Service')
+
+        if request_id:
+            # Hier wird die Tracking-Logik ausgeführt, wenn die X-Request-ID vorhanden ist
+            logging.info(f"Request ID: {request_id}")
+            logging.info(f"Request path: {request.url.path}")
+            logging.info(f"Request method: {request.method}")
+            logging.info(f"Request origin_service: {origin_service}")
+
+            # Hier könnten Sie auch Informationen über Query-Parameter und Body extrahieren
+            # Achten Sie dabei auf die Sensibilität der Daten
+            query_params = dict(request.query_params)
+            logging.info(f"Query parameters: {query_params}")
+
+            # Der Body kann nur in bestimmten Fällen gelesen werden, da er ein Stream ist
+            # Eine Möglichkeit ist, ihn zu lesen und dann in ein Ersatz-Request-Objekt zu setzen
+            # Dies kann jedoch zu Problemen bei großen Datenmengen führen und sollte mit Vorsicht verwendet werden
+
+            # Hier könnte ein Update auf die ServiceCommunicationTable erfolgen
+
+        # Weiterleitung des Requests an den nächsten Middleware-Handler oder die eigentliche Anwendungslogik
+        response = await call_next(request)
+
+        return response

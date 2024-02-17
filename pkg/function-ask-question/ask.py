@@ -2,7 +2,6 @@
 
 import logging
 import json
-from autogen import Completion
 import os
 from typing import List, Dict, Tuple
 from pydantic import BaseModel
@@ -30,18 +29,22 @@ def load_system_messages(json_file_path: str) -> List[Message]:
         logging.error(f"Ein unerwarteter Fehler ist aufgetreten: {e}")
         return []
 
-def send_request(messages: List[Message]) -> Tuple[Dict, str, int]:
+from openai import OpenAI
+
+client = OpenAI()
+
+def send_request(messages: List[Message], model: str) -> Tuple[Dict, str, int]:
     has_system_message = any(msg.role == 'system' for msg in messages)
     system_messages = load_system_messages('system.json')
 
     all_messages = system_messages + messages if not has_system_message else messages
 
-    completion_result = Completion.create(
+    completion_result = client.chat.completions.create(
         messages=[msg.dict() for msg in all_messages],
-        model="gpt-4",
+        model=model,
     )
 
-    completion_message = completion_result.get("choices", [{}])[0].get("message", None)
+    completion_message = completion_result.choices[0].message.content
 
     if not completion_message:
         error_message = "Entschuldigung, ich konnte keine Antwort generieren. Bitte versuchen Sie es später erneut."

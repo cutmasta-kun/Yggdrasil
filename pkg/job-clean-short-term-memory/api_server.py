@@ -11,6 +11,7 @@ import yaml
 
 # Konfigurieren der Anwendung
 logging.basicConfig(level=logging.WARNING)
+
 app = FastAPI()
 
 def run_check_tasks():
@@ -104,7 +105,7 @@ async def get_task_text():
         raise HTTPException(status_code=500, detail="Failed to get data from Memory Service")
 
     # Lese den Task-Text aus der Datei
-    with open('task_text.txt', 'r') as file:
+    with open('./messages/determine_messages_to_delete.txt', 'r') as file:
         task_text = file.read()
 
     # Konvertiere die Daten in einen formatierten String

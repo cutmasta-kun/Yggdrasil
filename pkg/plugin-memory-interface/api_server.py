@@ -5,12 +5,13 @@ from fastapi.middleware.cors import CORSMiddleware
 import yaml
 import os
 from memory_client import MemoryClient
-from fast_api_boilerplate import setup_app
+from fast_api_boilerplate import setup_app, RegistryMiddleware
 from pydantic import BaseModel
 
 # Extrahieren Sie den MEMORY_HOST aus den Umgebungsvariablen oder verwenden Sie den Standardwert
 MEMORY_HOST = os.getenv('MEMORY_HOST', 'http://memory:5006')
 PORT = os.getenv('PORT', 5005)
+SERVICE_NAME = f"plugin-memory-interface:{PORT}"
 memory_client = MemoryClient(MEMORY_HOST)
 
 app = FastAPI(
@@ -25,6 +26,8 @@ app = FastAPI(
 )
 
 setup_app(app)
+
+app.add_middleware(RegistryMiddleware)
 
 IGNORED_PATHS = ["favicon.ico"]
 

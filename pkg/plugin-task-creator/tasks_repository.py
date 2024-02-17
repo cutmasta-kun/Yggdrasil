@@ -1,44 +1,55 @@
 # tasks_repository.py
 #
-# version=1.5
+# version=1.6
 #
 ###
 import uuid
 import logging
 import requests
 import json
-from pydantic import BaseModel
-from typing import List, Optional
+from pydantic import BaseModel, validator, root_validator
+from typing import List, Optional, Dict
 
 logging.basicConfig(level=logging.INFO)
 
 class Task(BaseModel):
-    queueID: str = None
-    taskData: str
+    queueID: Optional[str] = None
+    taskData: Optional[str] = None
     status: str
-    result: str = None
-    systemMessage: str = None
-    metadata: Optional[dict] = None
+    result: Optional[str] = None
+    systemMessage: Optional[str] = None
+    metadata: Optional[Dict] = '{}'
     parent: Optional[str] = None
     children: List[str] = []
 
-    def __init__(self, **data):
-        super().__init__(**data)
-        if self.queueID is None:
-            self.queueID = str(uuid.uuid4())
+    @root_validator(pre=True)
+    def ensure_queueID(cls, values):
+        if 'queueID' not in values or values['queueID'] is None:
+            values['queueID'] = str(uuid.uuid4())
+        return values
 
-        # Stelle sicher, dass die children-Liste immer eine Liste ist
-        if not isinstance(self.children, list):
-            self.children = json.loads(self.children)
+    @validator('children', pre=True)
+    def ensure_children_is_list(cls, v):
+        if not isinstance(v, list):
+            return json.loads(v)
+        return v
+
+import json
 
 def json_serialize_if_needed(data, key):
     """
-    Serializes the specified key in the data dictionary to JSON if it exists.
+    Serializes the specified key in the data dictionary to JSON if it is not already a JSON string.
     :param data: Dictionary containing the data.
     :param key: Key to be serialized.
     """
-    if data.get(key) is not None:
-        data[key] = json.dumps(data[key])
+    if key in data and data[key] is not None:
+        try:
+            # Versucht, den Wert zu deserialisieren, um zu überprüfen, ob er bereits ein JSON-String ist
+            json.loads(data[key])
+        except (json.JSONDecodeError, TypeError):
+            # Wenn ein Fehler auftritt, bedeutet dies, dass der Wert noch kein JSON-String ist
+            data[key] = json.dumps(data[key])
+
 
 def add_task(host, task):
     """
@@ -53,7 +64,7 @@ def add_task(host, task):
         'Content-Type': 'application/json'
     }
 
-    data = task.dict()
+    data = task.model_dump()
 
     json_serialize_if_needed(data, 'metadata')
     json_serialize_if_needed(data, 'children')
@@ -63,7 +74,11 @@ def add_task(host, task):
     try:
         response = requests.post(url, headers=headers, data=json.dumps(data))
         response.raise_for_status()
-        return task.queueID
+        logging.info(f"response: {response.json()}")
+        logging.info("Task updated successfully. Refetching the task")
+        refetch_task = get_task_by_queueID(host, task.queueID)
+        logging.info(f"refetched task: {refetch_task}")
+        return refetch_task
     except requests.exceptions.RequestException as e:
         logging.error(f"An error occurred: {e}")
         if response:
@@ -76,21 +91,29 @@ def parse_task_data(task_data):
     :param task_data: A dictionary containing task data.
     :return: Task object.
     """
-    try:
-        metadata_dict = json.loads(task_data.get("metadata", "{}"))
-    except json.JSONDecodeError:
-        logging.error(f"Error decoding metadata: {task_data.get('metadata')}")
-        metadata_dict = {}
+    metadata = task_data.get("metadata", {})
+
+    # Überprüfen, ob metadata ein gültiger String für json.loads() ist
+    if isinstance(metadata, str):
+        try:
+            metadata_dict = json.loads(metadata)
+        except json.JSONDecodeError:
+            metadata_dict = {}
+    else:
+        metadata_dict = metadata if isinstance(metadata, dict) else {}
 
     task_data["metadata"] = metadata_dict
 
     # Convert children to a list if it's a string
     children_str = task_data.get("children", "[]")
-    try:
-        children_list = json.loads(children_str)
-    except json.JSONDecodeError:
-        logging.error(f"Error decoding children: {children_str}")
-        children_list = []
+    if isinstance(children_str, str):
+        try:
+            children_list = json.loads(children_str)
+        except json.JSONDecodeError:
+            logging.error(f"Error decoding children: {children_str}")
+            children_list = []
+    else:
+        children_list = children_str if isinstance(children_str, list) else []
 
     task_data["children"] = children_list
 
@@ -161,17 +184,18 @@ def update_task(host: str, task: Task) -> bool:
     url = f"{host}/tasks/update_task.json"
     headers = {'Content-Type': 'application/json'}
 
-    data = task.dict()
+    data = task.model_dump()
     json_serialize_if_needed(data, 'metadata')
     json_serialize_if_needed(data, 'children')
 
     try:
         response = requests.post(url, headers=headers, data=json.dumps(data))
         response.raise_for_status()
-        logging.info("Task updated successfully.")
-        return True
+        logging.info(f"response: {response.json()}")
+        logging.info("Task updated successfully. Refetching the task")
+        refetch_task = get_task_by_queueID(host, task.queueID)
+        logging.info(f"refetched task: {refetch_task}")
+        return refetch_task
     except requests.exceptions.RequestException as err:
         logging.error(f"A request error occurred: {err}. Response text: {response.text if response else 'No response'}")
-        return False
-
-    return False
+        return None

@@ -1,6 +1,8 @@
-fastapi==0.97.0
-uvicorn==0.22.0
-requests==2.30.0
-pydantic==1.10.9
+fastapi==0.108.0
+requests==2.31.0
+uvicorn==0.23.2
+pydantic==2.5.2
 uuid==1.30
 PyYAML==6.0.1
+instructor==0.4.6
+openai==1.5.0

@@ -177,10 +177,9 @@ def send_request(messages, headers, AI_MODEL, functions=functions):
     # Überprüfen, ob eine system-Nachricht in den übergebenen Nachrichten vorhanden ist
     has_system_message = any(msg.get('role') == 'system' for msg in messages)
 
-    system_messages = load_system_messages('system.json')
-
     # Wenn keine system-Nachricht vorhanden ist, laden Sie die system-Nachrichten und fügen Sie sie hinzu
     if not has_system_message:
+        system_messages = load_system_messages('system.json')
         all_messages = system_messages + messages
 
     logging.info(f"all_messages: {all_messages}")

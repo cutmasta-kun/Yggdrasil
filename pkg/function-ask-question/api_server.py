@@ -2,7 +2,6 @@ from fastapi import FastAPI, HTTPException, Response
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from ask import send_request
-from agents.compress_decompress import compress, decompress
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 import requests
@@ -56,7 +55,7 @@ async def ask(ask_request: AskRequest):
     messages = ask_request.messages
 
     try:
-        response, error, status_code = send_request(messages)
+        response, error, status_code = send_request(messages, AI_MODEL)
     except Exception as e:
         logging.error(f"Fehler bei der Kommunikation mit der KI: {e}")
         raise HTTPException(status_code=500, detail={'error': 'Internal server error'})
